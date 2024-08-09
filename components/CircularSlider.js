@@ -47,7 +47,7 @@ const CircularSlider = () => {
             2 * CIRCLE_RADIUS
           }`}
         />
-
+      </Svg>
       <PanGestureHandler onGestureEvent={handlePanGesture}>
         <View style={styles.gestureContainer} />
       </PanGestureHandler>
