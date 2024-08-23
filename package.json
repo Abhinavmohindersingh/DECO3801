@@ -12,6 +12,7 @@
     "@react-native-community/slider": "^4.5.2",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/stack": "^6.4.1",
+    "date-fns": "^3.6.0",
     "expo": "~51.0.24",
     "expo-linear-gradient": "~13.0.2",
     "expo-status-bar": "~1.12.1",
