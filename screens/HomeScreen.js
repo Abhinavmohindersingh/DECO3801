@@ -37,7 +37,7 @@ const HomeScreen = ({ navigation }) => {
     { id: '3', iconName: 'lightbulb-outline' },
     { id: '4', iconName: 'washing-machine' },
     { id: '5', iconName: 'air-conditioner' },
-    { id: '6', iconName: 'oven' },
+    //{ id: '6', iconName: 'oven' }, // this causes errors
     { id: '7', iconName: 'fan' },
     { id: '8', iconName: 'water-pump' },
     { id: '9', iconName: 'desktop-classic' },
