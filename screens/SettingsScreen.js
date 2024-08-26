@@ -6,7 +6,7 @@ import CircularSlider from "../components/CircularSlider";
 const SettingsScreen = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Adjust Volume</Text>
+      <Text style={styles.title}>Adjust </Text>
       <CircularSlider />
     </View>
   );
