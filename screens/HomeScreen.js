@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+
 import {
   View,
   Text,
@@ -13,43 +15,132 @@ import { LineChart } from "react-native-chart-kit";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Background from "../components/Background";
 
+var count = 0;
+
 const HomeScreen = ({ navigation }) => {
   const [energyUsage, setEnergyUsage] = useState(0);
   const [selectedDataPoint, setSelectedDataPoint] = useState(null);
-  const [dataView, setDataView] = useState("weekly"); // 'hourly' or 'weekly'
+  const [dataView, setDataView] = useState("weekly");
+  const [classification, setClassification] = useState(0);
+  const [chartData, setChartData] = useState({
+    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    datasets: [
+      {
+        data: [20, 40, 60, 80, 40, 20, 100],
+      },
+    ],
+  });
 
   useEffect(() => {
     mockFetchData();
-  }, []);
+    const dataIntervalId = setInterval(updateChartData, 3000);
+    const serverIntervalId = setInterval(sendDataToServer, 3000);
+
+    return () => {
+      clearInterval(dataIntervalId);
+      clearInterval(serverIntervalId);
+    };
+  }, [classification, dataView]);
 
   const mockFetchData = () => {
-    const usage = Math.floor(Math.random() * 100);
-    setEnergyUsage(usage);
+    // const usage = Math.floor(Math.random() * 100);
+    // setEnergyUsage(usage);
   };
 
-  const data = {
-    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-    datasets: [{ data: [20, 45, 28, 80, 99, 43, energyUsage] }],
-  };
-  const hourlyData = {
-    labels: ["12AM", "3AM", "6AM", "9AM", "12PM", "3PM", "6PM", "9PM"],
-    datasets: [{ data: [1, 5, 2, 4, 6, 7, 5, 3] }],
+  const predictedCumsumArray = [2, 4, 6, 8, 4, 10];
+
+  const sendDataToServer = async () => {
+    const predicted_cumsum =
+      predictedCumsumArray[count % predictedCumsumArray.length];
+    let newClassification;
+    if (predicted_cumsum > 60) {
+      newClassification = 2;
+    } else if (predicted_cumsum <= 60 && predicted_cumsum >= 40) {
+      newClassification = 1;
+    } else {
+      newClassification = 0;
+    }
+
+    setClassification(newClassification);
+
+    const data = {
+      timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+      predicted_cumsum: predicted_cumsum,
+      classification: newClassification,
+    };
+
+    try {
+      await axios.post("http://34.40.131.213:4000/fake", data);
+      console.log("Data sent:", data);
+    } catch (error) {
+      console.error("Error sending data:", error);
+    }
   };
 
-  const weeklyData = {
-    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-    datasets: [{ data: [20, 45, 28, 80, 99, 43, energyUsage] }],
+  const updateChartData = () => {
+    setChartData((prevState) => {
+      const newData = [
+        ...prevState.datasets[0].data.slice(1),
+        predictedCumsumArray[count],
+      ];
+      const usage = predictedCumsumArray[count];
+      setEnergyUsage(usage);
+
+      count = count + 1;
+      if (count > 5) {
+        count = 0;
+      }
+      const newLabels = [
+        ...prevState.labels.slice(1),
+        dataView === "hourly"
+          ? getNextHourLabel(prevState.labels[prevState.labels.length - 1])
+          : "",
+      ];
+
+      return {
+        labels: newLabels,
+        datasets: [{ data: newData }],
+      };
+    });
   };
 
-  const currentData = dataView === "hourly" ? hourlyData : weeklyData;
+  const getNextHourLabel = (currentLabel) => {
+    const hours = ["12AM", "3AM", "6AM", "9AM", "12PM", "3PM", "6PM", "9PM"];
+    const currentIndex = hours.indexOf(currentLabel);
+    return hours[(currentIndex + 1) % hours.length];
+  };
+
+  const getNextWeekLabel = (currentLabel) => {
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const currentIndex = days.indexOf(currentLabel);
+    return days[(currentIndex + 1) % days.length];
+  };
+
+  const handleDataViewChange = (view) => {
+    setDataView(view);
+    setChartData({
+      labels:
+        view === "hourly"
+          ? ["12AM", "3AM", "6AM", "9AM", "12PM", "3PM", "6PM", "9PM"]
+          : ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      datasets: [
+        {
+          data:
+            view === "hourly"
+              ? [1, 5, 2, 4, 6, 7, 5, 3]
+              : [20, 40, 60, 80, 40, 20, 100],
+        },
+      ],
+    });
+  };
 
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onPanResponderRelease: (evt, gestureState) => {
       if (gestureState.dx > 50) {
-        setDataView("hourly");
+        handleDataViewChange("hourly");
       } else if (gestureState.dx < -50) {
-        setDataView("weekly");
+        handleDataViewChange("weekly");
       }
     },
   });
@@ -97,7 +188,7 @@ const HomeScreen = ({ navigation }) => {
               {dataView === "hourly" ? "Hourly" : "Weekly"} Energy Usage
             </Text>
             <LineChart
-              data={currentData}
+              data={chartData}
               width={Dimensions.get("window").width - 40}
               height={220}
               yAxisLabel=""
@@ -131,7 +222,7 @@ const HomeScreen = ({ navigation }) => {
                     ]}
                   >
                     <Text style={styles.tooltipText}>
-                      {currentData.labels[selectedDataPoint.index]}:{" "}
+                      {chartData.labels[selectedDataPoint.index]}:{" "}
                       {selectedDataPoint.value} kWh
                     </Text>
                   </View>
@@ -182,7 +273,6 @@ const styles = StyleSheet.create({
     minHeight: "100%",
     flex: 1,
   },
-
   header: {
     padding: 20,
     borderBottomLeftRadius: 30,
