@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import Background from "../components/Background";
 import Button from "../components/Button";
+import { useNavigation } from "@react-navigation/native"; // Import useNavigation
 
 import logo from "../icons/windashlog.png"; // Adjust the path as necessary
 
@@ -17,6 +18,17 @@ const LoginScreen = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLogin, setIsLogin] = useState(true); // State to toggle between login and signup
+  const navigation = useNavigation(); // Hook to get the navigation object
+
+  const handleLogin = () => {
+    // You can add your authentication logic here
+    if (isLogin) {
+      // Assuming authentication is successful, navigate to the Profile screen
+      navigation.navigate("Profile");
+    } else {
+      // Handle signup logic here
+    }
+  };
 
   return (
     <Background>
@@ -78,6 +90,7 @@ const LoginScreen = () => {
           bgcolor="white"
           textcolor="Black"
           buttonLabel={isLogin ? "Login" : "Signup"}
+          onPress={handleLogin} // Call handleLogin when the button is pressed
         />
 
         {/* Add a 'Forgot password?' link only on the login form */}
@@ -105,18 +118,19 @@ const styles = StyleSheet.create({
     marginLeft: 50,
     marginRight: 25,
     marginTop: 0,
+    backgroundColor: "rgba(124, 110, 127, 0.1)",
     borderRadius: 50,
     width: "80%",
-    alignItems: "center", // Center items horizontally
+    alignItems: "center",
   },
   logoContainer: {
     alignItems: "center",
-    marginBottom: 30, // Space between logo and title
+    marginBottom: 30,
   },
   logo: {
     width: 350, // Adjust size as needed
     height: 250, // Adjust size as needed
-    resizeMode: "contain", // Adjust the image size to fit container
+    resizeMode: "contain",
   },
   logoText: {
     color: "white",
@@ -128,7 +142,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginTop: 20,
     marginBottom: 20,
-    backgroundColor: "#f0f0f0", // Background color of the toggle
+    backgroundColor: "#f0f0f0",
     borderRadius: 8,
   },
   toggleButton: {
@@ -137,7 +151,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   activeButton: {
-    backgroundColor: "#0066cc", // Active button background color
+    backgroundColor: "#0066cc",
   },
   toggleText: {
     color: "black",
@@ -146,18 +160,18 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "white",
-    fontSize: 36, // Adjusted font size
+    fontSize: 36,
     fontWeight: "bold",
     marginBottom: 20,
   },
   label: {
     color: "white",
-    fontSize: 18, // Adjusted font size
+    fontSize: 18,
     marginBottom: 5,
   },
   formGroup: {
-    width: "100%", // Full width of the container
-    marginBottom: 20, // Space between form groups
+    width: "100%",
+    marginBottom: 20,
   },
   input: {
     backgroundColor: "#fff",
@@ -166,7 +180,7 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     padding: 10,
     fontSize: 16,
-    width: "100%", // Full width of the form group
+    width: "100%",
   },
   forgotPasswordText: {
     color: "white",
