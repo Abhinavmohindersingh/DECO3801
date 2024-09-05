@@ -6,27 +6,85 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  Alert,
 } from "react-native";
 import Background from "../components/Background";
 import Button from "../components/Button";
-import { useNavigation } from "@react-navigation/native"; // Import useNavigation
+import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import logo from "../icons/windashlog.png"; // Adjust the path as necessary
+import logo from "../icons/windashlog.png";
 
 const LoginScreen = () => {
-  const [email, setEmail] = useState("");
+  const [username, setusername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLogin, setIsLogin] = useState(true); // State to toggle between login and signup
-  const navigation = useNavigation(); // Hook to get the navigation object
+  const [isLogin, setIsLogin] = useState(true);
+  const navigation = useNavigation();
 
-  const handleLogin = () => {
-    // You can add your authentication logic here
-    if (isLogin) {
-      // Assuming authentication is successful, navigate to the Profile screen
-      navigation.navigate("Profile");
+  const handleLogin = async () => {
+    if (!username || !password) {
+      alert("Please enter both email and password.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://34.40.131.213:4000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: username,
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Login successful, navigate to the Home screen
+        navigation.navigate("Home");
+      } else {
+        // Login failed, display the error message
+        alert(data.message || "Login failed. Please check your credentials.");
+      }
+    } catch (error) {
+      console.error("Error logging in:", error);
+      alert("An error occurred. Please try again.");
+    }
+  };
+
+  const handleSignUp = async () => {
+    if (!username || !password || !confirmPassword) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      alert("Passwords do not match.");
+      return;
+    }
+
+    const response = await fetch("http://34.40.131.213:4000/signup", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: username,
+        password: password,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Handle successful signup, e.g., navigate to Profile screen
+      navigation.navigate("Profile", { isSignUp: true });
     } else {
-      // Handle signup logic here
+      // Handle signup failure, show error message
+      alert(data.message || "Signup failed. Please try again.");
     }
   };
 
@@ -54,12 +112,12 @@ const LoginScreen = () => {
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>Username</Text>
           <TextInput
             style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
+            value={username}
+            onChangeText={setusername}
+            keyboardType="username"
             autoCapitalize="none"
           />
         </View>
@@ -73,7 +131,6 @@ const LoginScreen = () => {
           />
         </View>
 
-        {/* Conditionally render confirm password field for signup */}
         {!isLogin && (
           <View style={styles.formGroup}>
             <Text style={styles.label}>Confirm Password</Text>
@@ -90,17 +147,15 @@ const LoginScreen = () => {
           bgcolor="white"
           textcolor="Black"
           buttonLabel={isLogin ? "Login" : "Signup"}
-          onPress={handleLogin} // Call handleLogin when the button is pressed
+          onPress={isLogin ? handleLogin : handleSignUp}
         />
 
-        {/* Add a 'Forgot password?' link only on the login form */}
         {isLogin && (
           <TouchableOpacity>
             <Text style={styles.forgotPasswordText}>Forgot password?</Text>
           </TouchableOpacity>
         )}
 
-        {/* Toggle between Login and Signup */}
         <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
           <Text style={styles.switchText}>
             {isLogin
