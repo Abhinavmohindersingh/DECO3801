@@ -143,7 +143,8 @@ const ProfileScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: "space-between",
+    justifyContent: "center", // Center vertically
+    alignItems: "center", // Center horizontally
     paddingHorizontal: 20,
     paddingBottom: 20,
     flex: 1,
@@ -165,6 +166,7 @@ const styles = StyleSheet.create({
   },
   formSection: {
     marginBottom: 30,
+    width: "100%", // Ensure full width
   },
   sectionTitle: {
     fontSize: 20,
@@ -173,6 +175,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     textTransform: "uppercase",
     letterSpacing: 1,
+    textAlign: "center", // Center text
   },
   scrollView: {
     flex: 1,
@@ -187,6 +190,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 15,
     height: 60,
+    width: "100%", // Ensure full width
   },
   logoContainer: {
     alignItems: "center",
@@ -202,13 +206,13 @@ const styles = StyleSheet.create({
   },
   picker: {
     flex: 1,
-
     color: "#fff",
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 20,
+    width: "100%", // Ensure full width
   },
   saveButton: {
     backgroundColor: "#4CAF50",
