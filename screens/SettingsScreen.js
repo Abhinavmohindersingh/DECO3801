@@ -142,9 +142,12 @@ const styles = StyleSheet.create({
     width: "100%",
     flex: 1,
     opacity: 0.9, // Increased opacity for better visibility
+    justifyContent: "center", // Center vertically
+    alignItems: "center", // Center horizontally
   },
   section: {
     padding: 20,
+    width: "100%", // Ensure full width
   },
   sectionTitle: {
     fontSize: 20, // Increased font size
@@ -154,6 +157,7 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0, 0, 0, 0.75)", // Added text shadow for better contrast
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
+    textAlign: "center", // Center text
   },
   text: {
     color: "white",
@@ -162,16 +166,19 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0, 0, 0, 0.75)", // Added text shadow for better contrast
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
+    textAlign: "center", // Center text
   },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 10,
+    width: "100%", // Ensure full width
   },
   separator: {
     height: 2,
     backgroundColor: "rgba(255, 255, 255, 0.8)",
+    width: "100%", // Ensure full width
   },
   link: {
     color: "#4da6ff",
@@ -181,6 +188,7 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0, 0, 0, 0.75)", // Added text shadow for better contrast
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
+    textAlign: "center", // Center text
   },
   description: {
     marginBottom: 5,
@@ -190,6 +198,7 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0, 0, 0, 0.75)", // Added text shadow for better contrast
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
+    textAlign: "center", // Center text
   },
   modalView: {
     margin: 20,
@@ -214,6 +223,7 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0, 0, 0, 0.75)", // Added text shadow for better contrast
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
+    textAlign: "center", // Center text
   },
   input: {
     height: 40,
@@ -225,6 +235,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     color: "white",
     fontWeight: "bold",
+    textAlign: "center", // Center text
   },
   modalButtons: {
     flexDirection: "row",
