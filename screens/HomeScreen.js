@@ -1,101 +1,101 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-
 import {
   View,
-  Text,
-  StyleSheet,
-  Dimensions,
-  TouchableOpacity,
   ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
   TouchableWithoutFeedback,
-  PanResponder,
+  Dimensions,
 } from "react-native";
+import axios from "axios";
 import { LineChart } from "react-native-chart-kit";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import Icon from "react-native-vector-icons/MaterialIcons";
 import Background from "../components/Background";
-
-var count = 0;
+import { useRoute } from "@react-navigation/native";
 
 const HomeScreen = ({ navigation }) => {
+  const route = useRoute();
+  const {
+    rooms,
+    homeType,
+    squareFootage,
+    occupants,
+    dailyUsage,
+    energySource,
+    energyPreferences,
+  } = route.params || {}; // Add a fallback to avoid undefined error
+
+  // Log the received data
+  console.log("Received data:", {
+    rooms,
+    homeType,
+    squareFootage,
+    occupants,
+    dailyUsage,
+    energySource,
+    energyPreferences,
+  });
+
   const [energyUsage, setEnergyUsage] = useState(0);
   const [selectedDataPoint, setSelectedDataPoint] = useState(null);
-  const [dataView, setDataView] = useState("weekly");
+  const [dataView, setDataView] = useState("hourly");
   const [classification, setClassification] = useState(0);
   const [chartData, setChartData] = useState({
-    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    labels: Array.from({ length: 8 }, (_, i) => `${i * 10} sec`),
     datasets: [
       {
-        data: [20, 40, 60, 80, 40, 20, 100],
+        data: Array(8).fill(0),
       },
     ],
   });
 
   useEffect(() => {
-    mockFetchData();
-    const dataIntervalId = setInterval(updateChartData, 3000);
-    const serverIntervalId = setInterval(sendDataToServer, 3000);
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("http://34.87.202.191:4000/fake");
+        const data = response.data;
 
-    return () => {
-      clearInterval(dataIntervalId);
-      clearInterval(serverIntervalId);
-    };
-  }, [classification, dataView]);
+        console.log("Fetched data:", data); // Log the fetched data
 
-  const mockFetchData = () => {
-    // const usage = Math.floor(Math.random() * 100);
-    // setEnergyUsage(usage);
-  };
-
-  const predictedCumsumArray = [2, 4, 6, 8, 4, 10];
-
-  const sendDataToServer = async () => {
-    const predicted_cumsum =
-      predictedCumsumArray[count % predictedCumsumArray.length];
-    let newClassification;
-    if (predicted_cumsum > 60) {
-      newClassification = 2;
-    } else if (predicted_cumsum <= 60 && predicted_cumsum >= 40) {
-      newClassification = 1;
-    } else {
-      newClassification = 0;
-    }
-
-    setClassification(newClassification);
-
-    const data = {
-      timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-      predicted_cumsum: predicted_cumsum,
-      classification: newClassification,
-    };
-
-    try {
-      await axios.post("http://34.40.131.213:4000/fake", data);
-      console.log("Data sent:", data);
-    } catch (error) {
-      console.error("Error sending data:", error);
-    }
-  };
-
-  const updateChartData = () => {
-    setChartData((prevState) => {
-      const newData = [
-        ...prevState.datasets[0].data.slice(1),
-        predictedCumsumArray[count],
-      ];
-      const usage = predictedCumsumArray[count];
-      setEnergyUsage(usage);
-
-      count = count + 1;
-      if (count > 5) {
-        count = 0;
+        setEnergyUsage(data.predicted_cumsum);
+        setClassification(data.classification);
+        updateChartData(data.timestamp, data.predicted_cumsum);
+      } catch (error) {
+        if (error.response) {
+          // Server responded with a status other than 200 range
+          console.error("Server Error:", error.response.data);
+        } else if (error.request) {
+          // Request was made but no response received
+          console.error("Network Error:", error.request);
+        } else {
+          // Something else happened
+          console.error("Error:", error.message);
+        }
       }
+    };
+
+    fetchData();
+    const intervalId = setInterval(fetchData, 5000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const updateChartData = (timestamp, newDataPoint) => {
+    setChartData((prevState) => {
+      const newData = [...prevState.datasets[0].data.slice(1), newDataPoint];
       const newLabels = [
         ...prevState.labels.slice(1),
-        dataView === "hourly"
-          ? getNextHourLabel(prevState.labels[prevState.labels.length - 1])
-          : "",
+        new Date(timestamp).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       ];
+
+      console.log("Updated chart data:", {
+        labels: newLabels,
+        datasets: [{ data: newData }],
+      }); // Log the updated chart data
 
       return {
         labels: newLabels,
@@ -103,47 +103,6 @@ const HomeScreen = ({ navigation }) => {
       };
     });
   };
-
-  const getNextHourLabel = (currentLabel) => {
-    const hours = ["12AM", "3AM", "6AM", "9AM", "12PM", "3PM", "6PM", "9PM"];
-    const currentIndex = hours.indexOf(currentLabel);
-    return hours[(currentIndex + 1) % hours.length];
-  };
-
-  const getNextWeekLabel = (currentLabel) => {
-    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    const currentIndex = days.indexOf(currentLabel);
-    return days[(currentIndex + 1) % days.length];
-  };
-
-  const handleDataViewChange = (view) => {
-    setDataView(view);
-    setChartData({
-      labels:
-        view === "hourly"
-          ? ["12AM", "3AM", "6AM", "9AM", "12PM", "3PM", "6PM", "9PM"]
-          : ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-      datasets: [
-        {
-          data:
-            view === "hourly"
-              ? [1, 5, 2, 4, 6, 7, 5, 3]
-              : [20, 40, 60, 80, 40, 20, 100],
-        },
-      ],
-    });
-  };
-
-  const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onPanResponderRelease: (evt, gestureState) => {
-      if (gestureState.dx > 50) {
-        handleDataViewChange("hourly");
-      } else if (gestureState.dx < -50) {
-        handleDataViewChange("weekly");
-      }
-    },
-  });
 
   const renderViewIndicator = () => (
     <View style={styles.viewIndicator}>
@@ -170,22 +129,25 @@ const HomeScreen = ({ navigation }) => {
             style={styles.settingsIcon}
             onPress={() => navigation.navigate("Settings")}
           >
-            <Icon name="cog" size={30} color="white" />
+            {/* <Icon name="cog" size={30} color="white" /> */}
           </TouchableOpacity>
 
           <View style={styles.header}>
             <View style={styles.energyInfoContainer}>
               <Text style={styles.energySubtext}>Today's Usage</Text>
               <View style={styles.energyUsageRow}>
-                <Icon name="lightning-bolt" size={70} color="white" />
+                {/* <Icon name="lightning-bolt" size={70} color="white" /> */}
                 <Text style={styles.energyText}>: {energyUsage} kWh</Text>
               </View>
             </View>
           </View>
 
-          <View style={styles.chartContainer} {...panResponder.panHandlers}>
+          <View style={styles.chartContainer}>
             <Text style={styles.chartTitle}>
               {dataView === "hourly" ? "Hourly" : "Weekly"} Energy Usage
+            </Text>
+            <Text style={styles.chartDate}>
+              {new Date().toLocaleDateString()}
             </Text>
             <LineChart
               data={chartData}
@@ -235,7 +197,7 @@ const HomeScreen = ({ navigation }) => {
           <View style={styles.quickActionsContainer}>
             <Text style={styles.sectionTitle}>Quick Actions</Text>
             <View style={styles.quickActionsGrid}>
-              {[
+              {/* {[
                 { name: "sofa", label: "Living Room" },
                 { name: "garage", label: "Garage" },
                 { name: "stove", label: "Kitchen" },
@@ -245,7 +207,7 @@ const HomeScreen = ({ navigation }) => {
                   <Icon name={item.name} size={25} color="#1F2A44" />
                   <Text style={styles.iconLabel}>{item.label}</Text>
                 </TouchableOpacity>
-              ))}
+              ))} */}
             </View>
           </View>
 

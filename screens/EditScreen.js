@@ -29,8 +29,18 @@ const ProfileScreen = ({ navigation }) => {
   });
 
   const handleNextPress = () => {
+    // Log the data being passed
+
     // Navigate to the HomeScreen
-    navigation.navigate("Home");
+    navigation.navigate("Home", {
+      rooms: rooms,
+      homeType: homeType,
+      squareFootage: squareFootage,
+      occupants: occupants,
+      dailyUsage: dailyUsage,
+      energySource: energySource,
+      energyPreferences: energyPreferences,
+    });
   };
 
   const togglePreference = (key) => {
@@ -39,7 +49,6 @@ const ProfileScreen = ({ navigation }) => {
       [key]: !prevState[key],
     }));
   };
-
   return (
     <Background>
       <View style={styles.logoContainer}>
