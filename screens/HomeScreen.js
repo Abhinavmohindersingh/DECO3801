@@ -27,15 +27,15 @@ const HomeScreen = ({ navigation }) => {
   } = route.params || {}; // Add a fallback to avoid undefined error
 
   // Log the received data
-  console.log("Received data:", {
-    rooms,
-    homeType,
-    squareFootage,
-    occupants,
-    dailyUsage,
-    energySource,
-    energyPreferences,
-  });
+  // console.log("Received data:", {
+  //   rooms,
+  //   homeType,
+  //   squareFootage,
+  //   occupants,
+  //   dailyUsage,
+  //   energySource,
+  //   energyPreferences,
+  // });
 
   const [energyUsage, setEnergyUsage] = useState(0);
   const [selectedDataPoint, setSelectedDataPoint] = useState(null);
@@ -56,9 +56,9 @@ const HomeScreen = ({ navigation }) => {
         const response = await axios.get("http://34.87.202.191:4000/fake");
         const data = response.data;
 
-        console.log("Fetched data:", data); // Log the fetched data
+        // console.log("Fetched data:", data); // Log the fetched data
 
-        setEnergyUsage(data.predicted_cumsum);
+        setEnergyUsage(data.predicted_cumsum.toFixed(2));
         setClassification(data.classification);
         updateChartData(data.timestamp, data.predicted_cumsum);
       } catch (error) {
@@ -76,21 +76,23 @@ const HomeScreen = ({ navigation }) => {
     };
 
     fetchData();
-    const intervalId = setInterval(fetchData, 5000);
+    const intervalId = setInterval(fetchData, 3000);
 
     return () => clearInterval(intervalId);
   }, []);
 
   const updateChartData = (timestamp, newDataPoint) => {
+    // Parse the timestamp to extract the time part
+    const timeObj = new Date(timestamp);
+    timeObj.setHours(timeObj.getHours() - 10);
+
+    const hours = timeObj.getHours().toString().padStart(2, "0");
+    const minutes = timeObj.getMinutes().toString().padStart(2, "0");
+    const formattedTime = `${hours}:${minutes}`;
+
     setChartData((prevState) => {
       const newData = [...prevState.datasets[0].data.slice(1), newDataPoint];
-      const newLabels = [
-        ...prevState.labels.slice(1),
-        new Date(timestamp).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      ];
+      const newLabels = [...prevState.labels.slice(1), formattedTime];
 
       console.log("Updated chart data:", {
         labels: newLabels,
@@ -103,7 +105,6 @@ const HomeScreen = ({ navigation }) => {
       };
     });
   };
-
   const renderViewIndicator = () => (
     <View style={styles.viewIndicator}>
       <View
@@ -134,10 +135,12 @@ const HomeScreen = ({ navigation }) => {
 
           <View style={styles.header}>
             <View style={styles.energyInfoContainer}>
-              <Text style={styles.energySubtext}>Today's Usage</Text>
+              <Text style={styles.energySubtext}>
+                Today's Cumulative Usage:{" "}
+              </Text>
               <View style={styles.energyUsageRow}>
                 {/* <Icon name="lightning-bolt" size={70} color="white" /> */}
-                <Text style={styles.energyText}>: {energyUsage} kWh</Text>
+                <Text style={styles.energyText}>{energyUsage} kWh</Text>
               </View>
             </View>
           </View>
@@ -152,18 +155,22 @@ const HomeScreen = ({ navigation }) => {
             <LineChart
               data={chartData}
               width={Dimensions.get("window").width - 40}
-              height={220}
+              height={260} // Increase height for better visibility
               yAxisLabel=""
               yAxisSuffix=" kWh"
+              yAxisInterval={1} // optional, defaults to 1
               chartConfig={{
                 backgroundColor: "#ffffff",
                 backgroundGradientFrom: "#ffffff",
                 backgroundGradientTo: "#ffffff",
-                decimalPlaces: 0,
+                decimalPlaces: 2, // Adjust decimal places
                 color: (opacity = 1) => `rgba(31, 42, 68, ${opacity})`,
                 labelColor: (opacity = 1) => `rgba(31, 42, 68, ${opacity})`,
                 style: { borderRadius: 16 },
                 propsForDots: { r: "6", strokeWidth: "2", stroke: "#1F2A44" },
+                formatYLabel: (yValue) => `${yValue.toFixed(2)} kWh`, // Format y-axis labels
+                gridColor: (opacity = 1) => `rgba(200, 200, 200, ${opacity})`, // Grid color
+                borderColor: (opacity = 1) => `rgba(31, 42, 68, ${opacity})`, // Border color
               }}
               bezier
               style={styles.chartStyle}
@@ -243,19 +250,25 @@ const styles = StyleSheet.create({
   energyInfoContainer: {
     flex: 1,
   },
+
+  chartDate: {
+    color: "#FFFFFF",
+  },
+
   energyUsageRow: {
     flexDirection: "row",
     alignItems: "center",
   },
   energyText: {
-    fontSize: 36,
+    fontSize: 25,
+    alignItems: "center",
     fontWeight: "bold",
     color: "#FFFFFF",
-    marginLeft: 10,
+    // marginLeft: 10,
   },
   energySubtext: {
-    fontSize: 25,
-    marginLeft: 30,
+    fontSize: 30,
+    // marginLeft: 10,
     marginBottom: 20,
     color: "white",
     marginTop: 5,
@@ -269,7 +282,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#FFFFFF",
-    marginBottom: 10,
+    marginBottom: 5,
   },
   chartStyle: {
     borderRadius: 16,
