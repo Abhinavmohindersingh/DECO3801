@@ -138,9 +138,9 @@ const ProfileScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.saveButton}>
+          {/* <TouchableOpacity style={styles.saveButton}>
             <Text style={styles.buttonText}>Save</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <TouchableOpacity style={styles.nextButton} onPress={handleNextPress}>
             <Text style={styles.buttonText}>Next</Text>
           </TouchableOpacity>
@@ -153,6 +153,7 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     justifyContent: "center", // Center vertically
+    marginLeft: 28,
     alignItems: "center", // Center horizontally
     paddingHorizontal: 20,
     paddingBottom: 20,
@@ -167,6 +168,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#fff",
     marginBottom: 10,
+    textAlign: "center", // Center text
   },
   subtitle: {
     fontSize: 16,
@@ -176,6 +178,7 @@ const styles = StyleSheet.create({
   formSection: {
     marginBottom: 30,
     width: "100%", // Ensure full width
+    alignItems: "center", // Center horizontally
   },
   sectionTitle: {
     fontSize: 20,
@@ -189,6 +192,10 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     width: "100%",
+    contentContainerStyle: {
+      justifyContent: "center", // Center vertically
+      alignItems: "center", // Center horizontally
+    },
   },
   inputContainer: {
     flexDirection: "row",
@@ -219,7 +226,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     marginTop: 20,
     width: "100%", // Ensure full width
   },
@@ -238,7 +245,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     borderRadius: 25,
     alignItems: "center",
-    flex: 1,
+    width: "30%",
+    flex: 0.5,
   },
   buttonText: {
     color: "#fff",

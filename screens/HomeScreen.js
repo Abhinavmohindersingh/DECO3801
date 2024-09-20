@@ -11,6 +11,7 @@ import {
 import axios from "axios";
 import { LineChart } from "react-native-chart-kit";
 import Icon from "react-native-vector-icons/MaterialIcons";
+
 import Background from "../components/Background";
 import { useRoute } from "@react-navigation/native";
 
@@ -130,14 +131,12 @@ const HomeScreen = ({ navigation }) => {
             style={styles.settingsIcon}
             onPress={() => navigation.navigate("Settings")}
           >
-            {/* <Icon name="cog" size={30} color="white" /> */}
+            <Icon name="settings" size={30} color="white" />
           </TouchableOpacity>
 
           <View style={styles.header}>
             <View style={styles.energyInfoContainer}>
-              <Text style={styles.energySubtext}>
-                Today's Cumulative Usage:{" "}
-              </Text>
+              <Text style={styles.energySubtext}>Cumulative Usage: </Text>
               <View style={styles.energyUsageRow}>
                 {/* <Icon name="lightning-bolt" size={70} color="white" /> */}
                 <Text style={styles.energyText}>{energyUsage} kWh</Text>
@@ -204,17 +203,17 @@ const HomeScreen = ({ navigation }) => {
           <View style={styles.quickActionsContainer}>
             <Text style={styles.sectionTitle}>Quick Actions</Text>
             <View style={styles.quickActionsGrid}>
-              {/* {[
-                { name: "sofa", label: "Living Room" },
+              {[
+                { name: "living", label: "Rooms" },
                 { name: "garage", label: "Garage" },
-                { name: "stove", label: "Kitchen" },
-                { name: "bed", label: " Rooms" },
+                { name: "kitchen", label: "Kitchen" },
+                { name: "bed", label: "Living Rooms" },
               ].map((item, index) => (
                 <TouchableOpacity key={index} style={styles.quickActionItem}>
                   <Icon name={item.name} size={25} color="#1F2A44" />
                   <Text style={styles.iconLabel}>{item.label}</Text>
                 </TouchableOpacity>
-              ))} */}
+              ))}
             </View>
           </View>
 
@@ -233,7 +232,7 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   settingsIcon: {
     position: "absolute",
-    top: 10,
+    top: 3,
     right: 20,
     zIndex: 1,
   },
