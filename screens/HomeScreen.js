@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   Dimensions,
+  Modal,
 } from "react-native";
 import axios from "axios";
 import { LineChart } from "react-native-chart-kit";
@@ -14,6 +15,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 
 import Background from "../components/Background";
 import { useRoute } from "@react-navigation/native";
+import { parse } from "react-native-svg";
 
 const HomeScreen = ({ navigation }) => {
   const route = useRoute();
@@ -27,21 +29,13 @@ const HomeScreen = ({ navigation }) => {
     energyPreferences,
   } = route.params || {}; // Add a fallback to avoid undefined error
 
-  // Log the received data
-  // console.log("Received data:", {
-  //   rooms,
-  //   homeType,
-  //   squareFootage,
-  //   occupants,
-  //   dailyUsage,
-  //   energySource,
-  //   energyPreferences,
-  // });
-
   const [energyUsage, setEnergyUsage] = useState(0);
   const [selectedDataPoint, setSelectedDataPoint] = useState(null);
   const [dataView, setDataView] = useState("hourly");
   const [classification, setClassification] = useState(0);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [devices, setDevices] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
   const [chartData, setChartData] = useState({
     labels: Array.from({ length: 8 }, (_, i) => `${i * 10} sec`),
     datasets: [
@@ -93,17 +87,69 @@ const HomeScreen = ({ navigation }) => {
       const newData = [...prevState.datasets[0].data.slice(1), newDataPoint];
       const newLabels = [...prevState.labels.slice(1), formattedTime];
 
-      // console.log("Updated chart data:", {
-      //   labels: newLabels,
-      //   datasets: [{ data: newData }],
-      // }); // Log the updated chart data
-
       return {
         labels: newLabels,
         datasets: [{ data: newData }],
       };
     });
   };
+
+  const handleRoomClick = (roomIndex) => {
+    setSelectedRoom("Room " + (parseInt(roomIndex) + 1));
+    // Fake list of devices for demonstration
+    const fakeDevices = [
+      { name: "Light", status: "On" },
+      { name: "Fan", status: "Off" },
+      { name: "TV", status: "On" },
+    ];
+    setDevices(fakeDevices);
+    setModalVisible(true);
+  };
+
+  const handleOtherRoomClick = (room) => {
+    setSelectedRoom(room);
+    // Fake list of devices for demonstration
+    const fakeDevices = [
+      { name: "Light", status: "On" },
+      { name: "Fan", status: "Off" },
+      { name: "TV", status: "On" },
+    ];
+    setDevices(fakeDevices);
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
+
+  const renderRooms = () => {
+    const roomComponents = [];
+    for (let i = 0; i < parseInt(rooms); i++) {
+      roomComponents.push(
+        <TouchableOpacity
+          key={i}
+          style={styles.roomContainer}
+          onPress={() => handleRoomClick(i)}
+        >
+          <Text style={styles.roomText}>Room {i + 1}</Text>
+        </TouchableOpacity>
+      );
+    }
+    return roomComponents;
+  };
+
+  const renderOccupants = () => {
+    const occupantComponents = [];
+    for (let i = 0; i < parseInt(occupants); i++) {
+      occupantComponents.push(
+        <View key={i} style={styles.occupantContainer}>
+          <Text style={styles.occupantText}>Occupant {i + 1}</Text>
+        </View>
+      );
+    }
+    return occupantComponents;
+  };
+
   const renderViewIndicator = () => (
     <View style={styles.viewIndicator}>
       <View
@@ -134,9 +180,10 @@ const HomeScreen = ({ navigation }) => {
 
           <View style={styles.header}>
             <View style={styles.energyInfoContainer}>
+              <Text style={styles.homeTypeSubtext}>{homeType}</Text>
+
               <Text style={styles.energySubtext}>Cumulative Usage: </Text>
               <View style={styles.energyUsageRow}>
-                {/* <Icon name="lightning-bolt" size={70} color="white" /> */}
                 <Text style={styles.energyText}>{energyUsage} kWh</Text>
               </View>
             </View>
@@ -198,16 +245,57 @@ const HomeScreen = ({ navigation }) => {
             {renderViewIndicator()}
           </View>
 
+          <View style={styles.roomListContainer}>
+            <Text style={styles.sectionTitle}>Bedrooms</Text>
+            {renderRooms()}
+          </View>
+
+          {/* POP UP WINDOW */}
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={closeModal}
+          >
+            <TouchableWithoutFeedback onPress={closeModal}>
+              <View style={styles.modalOverlay}>
+                <TouchableWithoutFeedback>
+                  <View style={styles.modalContainer}>
+                    <TouchableOpacity
+                      style={styles.closeButton}
+                      onPress={closeModal}
+                    >
+                      <Text style={styles.closeButtonText}>X</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.popupSectionTitle}>
+                      Devices in {selectedRoom}
+                    </Text>
+                    {devices.map((device, index) => (
+                      <View key={index} style={styles.deviceContainer}>
+                        <Text style={styles.deviceText}>{device.name}</Text>
+                        <Text style={styles.deviceStatus}>{device.status}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </TouchableWithoutFeedback>
+              </View>
+            </TouchableWithoutFeedback>
+          </Modal>
+
           <View style={styles.quickActionsContainer}>
-            <Text style={styles.sectionTitle}>Quick Actions</Text>
+            <Text style={styles.sectionTitle}>Other Rooms</Text>
             <View style={styles.quickActionsGrid}>
               {[
-                { name: "living", label: "Rooms" },
-                { name: "garage", label: "Garage" },
+                { name: "bathtub", label: "Bathroom" },
                 { name: "kitchen", label: "Kitchen" },
-                { name: "bed", label: "Living Rooms" },
+                { name: "bed", label: "Living Room" },
+                { name: "more-horiz", label: "Other Room" },
               ].map((item, index) => (
-                <TouchableOpacity key={index} style={styles.quickActionItem}>
+                <TouchableOpacity
+                  key={index}
+                  style={styles.quickActionItem}
+                  onPress={() => handleOtherRoomClick(item.label)}
+                >
                   <Icon name={item.name} size={25} color="#1F2A44" />
                   <Text style={styles.iconLabel}>{item.label}</Text>
                 </TouchableOpacity>
@@ -215,12 +303,10 @@ const HomeScreen = ({ navigation }) => {
             </View>
           </View>
 
-          <TouchableOpacity
-            style={styles.customizeButton}
-            onPress={() => navigation.navigate("")}
-          >
-            <Text style={styles.buttonText}>Customize Energy Plan</Text>
-          </TouchableOpacity>
+          <View style={styles.occupantListContainer}>
+            <Text style={styles.sectionTitle}>Occupants</Text>
+            {renderOccupants()}
+          </View>
         </ScrollView>
       </TouchableWithoutFeedback>
     </Background>
@@ -245,7 +331,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 30,
   },
   energyInfoContainer: {
-    flex: 1,
+    marginTop: 10,
   },
 
   chartDate: {
@@ -263,16 +349,26 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     // marginLeft: 10,
   },
+
+  homeTypeSubtext: {
+    fontSize: 35,
+    marginTop: 10,
+    marginBottom: 10,
+    color: "white",
+    marginTop: 5,
+    fontWeight: "bold",
+  },
+
   energySubtext: {
     fontSize: 30,
     // marginLeft: 10,
-    marginBottom: 20,
+    marginBottom: 10,
     color: "white",
     marginTop: 5,
     fontWeight: "bold",
   },
   chartContainer: {
-    opacity: 0.98,
+    marginTop: -20,
     padding: 20,
   },
   chartTitle: {
@@ -284,19 +380,20 @@ const styles = StyleSheet.create({
   chartStyle: {
     borderRadius: 16,
   },
-  quickActionsContainer: {
-    padding: 20,
-  },
+
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#FFFFFF",
     marginBottom: 15,
+    marginLeft: 15,
   },
   quickActionsGrid: {
     flexDirection: "row",
     height: 100,
     justifyContent: "space-between",
+    marginLeft: 15,
+    marginRight: 15,
   },
   quickActionItem: {
     width: 60,
@@ -365,6 +462,114 @@ const styles = StyleSheet.create({
   },
   inactiveDot: {
     backgroundColor: "rgba(255, 255, 255, 0.5)",
+  },
+
+  quickActionsContainer: {
+    // marginLeft: 15,
+    // marginRight: 15,
+  },
+
+  roomListContainer: {
+    marginBottom: 20,
+  },
+  occupantListContainer: {
+    marginBottom: 50,
+  },
+  roomContainer: {
+    padding: 10,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 5,
+    marginBottom: 10,
+    marginLeft: 15,
+    marginRight: 15,
+  },
+  occupantContainer: {
+    padding: 10,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 5,
+    marginBottom: 10,
+    marginLeft: 15,
+    marginRight: 15,
+  },
+  roomText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  occupantText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  deviceListContainer: {
+    marginTop: 20,
+  },
+  deviceContainer: {
+    padding: 10,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  deviceText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  deviceStatus: {
+    fontSize: 14,
+    color: "#666",
+  },
+
+  scrollView: {
+    flex: 1,
+    width: "100%",
+  },
+
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+  },
+  modalContainer: {
+    width: "80%",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  closeButton: {
+    alignSelf: "flex-end",
+    padding: 10,
+  },
+  closeButtonText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  popupSectionTitle: {
+    fontSize: 25,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  deviceContainer: {
+    padding: 10,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 5,
+    marginBottom: 10,
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  deviceText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  deviceStatus: {
+    fontSize: 14,
+    color: "#666",
   },
 });
 

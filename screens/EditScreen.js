@@ -68,7 +68,7 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   return (
-    <Background>
+    <Background style={styles.back}>
       <View style={styles.logoContainer}>
         <Image source={logo} style={styles.logo} />
       </View>
@@ -111,11 +111,11 @@ const ProfileScreen = ({ navigation }) => {
               style={styles.picker}
             >
               <Picker.Item label="Select Home Type" value="" />
-              <Picker.Item label="Apartment" value="apartment" />
-              <Picker.Item label="Single-family home" value="singleFamily" />
-              <Picker.Item label="Townhouse" value="townhouse" />
-              <Picker.Item label="Condo" value="condo" />
-              <Picker.Item label="Other" value="other" />
+              <Picker.Item label="Apartment" value="Apartment" />
+              <Picker.Item label="Single-family home" value="Single Family" />
+              <Picker.Item label="Townhouse" value="Townhouse" />
+              <Picker.Item label="Condo" value="Condo" />
+              <Picker.Item label="Other" value="Other" />
             </Picker>
           </View>
 
@@ -179,10 +179,11 @@ const styles = StyleSheet.create({
   container: {
     justifyContent: "center", // Center vertically
     alignItems: "center", // Center horizontally
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    marginLeft: 50,
-    flex: 1,
+    padding: 20,
+    // paddingHorizontal: 20,
+    // paddingBottom: 20,
+    // marginLeft: 50,
+    // flex: 1,
   },
   header: {
     marginBottom: 30,
