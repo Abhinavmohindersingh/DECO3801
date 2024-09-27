@@ -57,8 +57,6 @@ const HomeScreen = ({ navigation }) => {
         const response = await axios.get("http://34.87.202.191:4000/fake");
         const data = response.data;
 
-        // console.log("Fetched data:", data); // Log the fetched data
-
         setEnergyUsage(data.predicted_cumsum.toFixed(2));
         setClassification(data.classification);
         updateChartData(data.timestamp, data.predicted_cumsum);
@@ -95,10 +93,10 @@ const HomeScreen = ({ navigation }) => {
       const newData = [...prevState.datasets[0].data.slice(1), newDataPoint];
       const newLabels = [...prevState.labels.slice(1), formattedTime];
 
-      console.log("Updated chart data:", {
-        labels: newLabels,
-        datasets: [{ data: newData }],
-      }); // Log the updated chart data
+      // console.log("Updated chart data:", {
+      //   labels: newLabels,
+      //   datasets: [{ data: newData }],
+      // }); // Log the updated chart data
 
       return {
         labels: newLabels,

@@ -1,12 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
   Image,
+  Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import Background from "../components/Background";
@@ -27,9 +27,26 @@ const ProfileScreen = ({ navigation }) => {
     appliances: false,
     waterUsage: false,
   });
+  // const [isNextEnabled, setIsNextEnabled] = useState(false);
+
+  // useEffect(() => {
+  //   // Check if all required fields have a value
+  //   if (rooms && homeType && occupants) {
+  //     setIsNextEnabled(true);
+  //   } else {
+  //     setIsNextEnabled(false);
+  //   }
+  // }, [rooms, homeType, occupants]);
 
   const handleNextPress = () => {
-    // Log the data being passed
+    // Notify user when not all value is selected
+    if (rooms == "" || homeType == "" || occupants == "") {
+      Alert.alert(
+        "Incomplete Information",
+        "Please select values for all required fields before proceeding."
+      );
+      return;
+    }
 
     // Navigate to the HomeScreen
     navigation.navigate("Home", {
@@ -49,6 +66,7 @@ const ProfileScreen = ({ navigation }) => {
       [key]: !prevState[key],
     }));
   };
+
   return (
     <Background>
       <View style={styles.logoContainer}>
@@ -113,12 +131,17 @@ const ProfileScreen = ({ navigation }) => {
               <Picker.Item label="2" value="2" />
               <Picker.Item label="3" value="3" />
               <Picker.Item label="4" value="4" />
-              <Picker.Item label="5+" value="5+" />
+              <Picker.Item label="5" value="5" />
+              <Picker.Item label="6" value="6" />
+              <Picker.Item label="7" value="7" />
+              <Picker.Item label="8" value="8" />
+              <Picker.Item label="9" value="9" />
+              <Picker.Item label="10" value="10" />
             </Picker>
           </View>
         </View>
 
-        <View style={styles.formSection}>
+        {/* <View style={styles.formSection}>
           <Text style={styles.sectionTitle}>Energy Source Information</Text>
           <View style={styles.inputContainer}>
             <Icon name="power" size={24} color="#fff" style={styles.icon} />
@@ -135,13 +158,15 @@ const ProfileScreen = ({ navigation }) => {
               <Picker.Item label="Other" value="other" />
             </Picker>
           </View>
-        </View>
+        </View> */}
 
         <View style={styles.buttonContainer}>
-          {/* <TouchableOpacity style={styles.saveButton}>
-            <Text style={styles.buttonText}>Save</Text>
-          </TouchableOpacity> */}
-          <TouchableOpacity style={styles.nextButton} onPress={handleNextPress}>
+          <TouchableOpacity
+            // style={[styles.nextButton, !isNextEnabled && styles.disabledButton]}
+            style={[styles.nextButton]}
+            onPress={handleNextPress}
+            // disabled={!isNextEnabled}
+          >
             <Text style={styles.buttonText}>Next</Text>
           </TouchableOpacity>
         </View>
@@ -153,10 +178,10 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     justifyContent: "center", // Center vertically
-    marginLeft: 28,
     alignItems: "center", // Center horizontally
     paddingHorizontal: 20,
     paddingBottom: 20,
+    marginLeft: 50,
     flex: 1,
   },
   header: {
@@ -192,10 +217,6 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     width: "100%",
-    contentContainerStyle: {
-      justifyContent: "center", // Center vertically
-      alignItems: "center", // Center horizontally
-    },
   },
   inputContainer: {
     flexDirection: "row",
@@ -210,6 +231,7 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: "center",
+    marginLeft: 20,
     marginVertical: 20,
   },
   logo: {

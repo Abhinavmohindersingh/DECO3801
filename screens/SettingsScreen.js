@@ -138,8 +138,8 @@ const SettingsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     marginTop: 80,
-    marginLeft: 8,
-    width: "100%",
+    marginLeft: 13,
+    width: "95%",
     flex: 1,
     opacity: 0.9, // Increased opacity for better visibility
     justifyContent: "center", // Center vertically
