@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -10,8 +10,10 @@ import {
 } from "react-native";
 import Background from "../components/Background";
 import Button from "../components/Button";
+import { Ionicons } from "@expo/vector-icons"; // Importing icons for the eye icon
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Animated, Easing } from "react-native";
 
 import logo from "../icons/windashlog.png";
 
@@ -19,8 +21,48 @@ const LoginScreen = () => {
   const [username, setusername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // Toggle for showing password
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Toggle for showing confirm password
+
   const [isLogin, setIsLogin] = useState(true);
+
   const navigation = useNavigation();
+
+  const [glowAnim] = useState(new Animated.Value(0));
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 1,
+          duration: 2000,
+          easing: Easing.ease,
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0,
+          duration: 2000,
+          easing: Easing.ease,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  const logoGlow = {
+    transform: [
+      {
+        scale: glowAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [1, 1.05], // Slight glow effect by scaling
+        }),
+      },
+    ],
+    opacity: glowAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.8, 1],
+    }),
+  };
 
   const handleLogin = async () => {
     if (!username || !password) {
@@ -29,11 +71,12 @@ const LoginScreen = () => {
     }
 
     try {
-      const response = await fetch("http://34.40.131.213:4000/login", {
+      const response = await fetch("http://34.116.90.99:4000/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+
         body: JSON.stringify({
           username: username,
           password: password,
@@ -91,8 +134,8 @@ const LoginScreen = () => {
   return (
     <Background>
       <View style={styles.logoContainer}>
-        <Image source={logo} style={styles.logo} />
-        <Text style={styles.logoText}></Text>
+        <Animated.Image source={logo} style={[styles.logo, logoGlow]} />
+        <Text style={styles.logoText}>Real-Time Energy, Real-Life Savings</Text>
       </View>
 
       <View style={styles.container}>
@@ -127,8 +170,18 @@ const LoginScreen = () => {
             style={styles.input}
             value={password}
             onChangeText={setPassword}
-            secureTextEntry
+            secureTextEntry={!showConfirmPassword} // Toggle confirm password visibility
           />
+          <TouchableOpacity
+            style={styles.eyeIcon}
+            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+          >
+            <Ionicons
+              name={showConfirmPassword ? "eye" : "eye-off"}
+              size={24}
+              color="Black"
+            />
+          </TouchableOpacity>
         </View>
 
         {!isLogin && (
@@ -144,6 +197,7 @@ const LoginScreen = () => {
         )}
 
         <Button
+          zIndex="1"
           bgcolor="white"
           textcolor="Black"
           buttonLabel={isLogin ? "Login" : "Signup"}
@@ -170,13 +224,18 @@ const LoginScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    marginLeft: 50,
-    marginRight: 25,
+    marginLeft: 35,
+    marginRight: 35,
     marginTop: 0,
-    backgroundColor: "rgba(124, 110, 127, 0.1)",
+    padding: 10,
+    backgroundColor: "rgba(124, 110, 127, 0.5)",
     borderRadius: 50,
     width: "80%",
     alignItems: "center",
+  },
+  slogan: {
+    height: 100,
+    color: "red",
   },
   logoContainer: {
     alignItems: "center",
@@ -186,12 +245,22 @@ const styles = StyleSheet.create({
     width: 350, // Adjust size as needed
     height: 250, // Adjust size as needed
     resizeMode: "contain",
+    marginBottom: 0,
+  },
+  eyeIcon: {
+    color: "white",
+    position: "absolute",
+    top: 35,
+    left: 250,
   },
   logoText: {
     color: "white",
-    fontSize: 36,
+    fontSize: 16,
     fontWeight: "bold",
-    marginTop: 10,
+    marginLeft: 15,
+    position: "absolute",
+    top: 175,
+    left: 50,
   },
   toggleContainer: {
     flexDirection: "row",
@@ -221,6 +290,7 @@ const styles = StyleSheet.create({
   },
   label: {
     color: "white",
+    zIndex: 5,
     fontSize: 18,
     marginBottom: 5,
   },

@@ -37,22 +37,9 @@ const ProfileScreen = ({ navigation }) => {
   const occupantsOptions = ["1", "2", "3", "4", "5+"];
   const energySourceOptions = ["Electricity", "Natural Gas", "Solar"];
 
-  const handleNextPress = () => {
-    // Check if all fields are filled
-    if (
-      // !rooms ||
-      !homeType ||
-      !occupants ||
-      !energySource
-      //  ||
-      // roomNames.some((name) => name.trim() === "")
-    ) {
-      Alert.alert("Missing Information", "Please fill in all required fields.");
-      return;
-    }
-
-    // Proceed to next screen if validation passes
-    navigation.navigate("Home");
+  const handleBackPress = () => {
+    // Navigate back to the previous screen (no validation needed now)
+    navigation.goBack();
   };
 
   const renderDropdown = (options, setSelectedValue, setShowModal) => {
@@ -218,8 +205,8 @@ const ProfileScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.nextButton} onPress={handleNextPress}>
-            <Text style={styles.buttonText}>Next</Text>
+          <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+            <Text style={styles.buttonText}>Back</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -333,7 +320,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
   },
-  nextButton: {
+  backButton: {
     backgroundColor: "#007bff",
     paddingVertical: 15,
     borderRadius: 5,
