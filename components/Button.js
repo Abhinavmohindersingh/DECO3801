@@ -19,6 +19,8 @@ const styles = StyleSheet.create({
     borderRadius: 25, // Rounded corners
     alignItems: "center",
     width: 300,
+    backgroundColor: "#0066cc",
+
     paddingVertical: 15, // Increased padding for a better look
   },
   buttonText: {
