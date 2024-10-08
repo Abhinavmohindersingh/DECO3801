@@ -6,6 +6,8 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
+  Modal,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { Canvas } from "@react-three/fiber";
 import Icon from "react-native-vector-icons/Ionicons";
@@ -41,10 +43,27 @@ const menuOptions = [
 const FlowerPot = () => {
   const navigation = useNavigation(); // Initialize navigation
   const [numColumns, setNumColumns] = useState(2); // Default to 2 columns
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState("");
+  const [devices, setDevices] = useState([
+    { name: "Light", status: "On" },
+    { name: "Fan", status: "Off" },
+    // Add more devices as needed
+  ]);
 
   const handleMenuItemClick = (href) => {
     // Navigate to the desired screen
     navigation.navigate(href);
+  };
+
+  const handleRoomIconClick = (room) => {
+    // Set the selected room and show the modal
+    setSelectedRoom(room);
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
   };
 
   const renderMenuOption = ({ item }) => (
@@ -114,19 +133,21 @@ const FlowerPot = () => {
         <View style={styles.roomIconsContainer}>
           <View style={styles.roomIcons}>
             <View style={styles.iconWrapper}>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => handleRoomIconClick("Rooms")}>
                 <Icon name="bed-outline" size={40} color="#fff" />
               </TouchableOpacity>
               <Text style={styles.iconLabel}>Rooms</Text>
             </View>
             <View style={styles.iconWrapper}>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => handleRoomIconClick("Kitchen")}>
                 <Icon name="restaurant-outline" size={40} color="#fff" />
               </TouchableOpacity>
               <Text style={styles.iconLabel}>Kitchen</Text>
             </View>
             <View style={styles.iconWrapper}>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleRoomIconClick("LivingRoom")}
+              >
                 <MaterialCommunityIcons
                   name="sofa-outline"
                   size={40}
@@ -136,7 +157,7 @@ const FlowerPot = () => {
               <Text style={styles.iconLabel}>Living Room</Text>
             </View>
             <View style={styles.iconWrapper}>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => handleRoomIconClick("Laundry")}>
                 <MaterialCommunityIcons
                   name="washing-machine"
                   size={40}
@@ -159,6 +180,37 @@ const FlowerPot = () => {
             key={numColumns} // Provide a unique key based on numColumns
           />
         </View>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={closeModal}
+        >
+          <TouchableWithoutFeedback onPress={closeModal}>
+            <View style={styles.modalOverlay}>
+              <TouchableWithoutFeedback>
+                <View style={styles.modalContainer}>
+                  <TouchableOpacity
+                    style={styles.closeButton}
+                    onPress={closeModal}
+                  >
+                    <Text style={styles.closeButtonText}>X</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.popupSectionTitle}>
+                    Devices in {selectedRoom}
+                  </Text>
+                  {devices.map((device, index) => (
+                    <View key={index} style={styles.deviceContainer}>
+                      <Text style={styles.deviceText}>{device.name}</Text>
+                      <Text style={styles.deviceStatus}>{device.status}</Text>
+                    </View>
+                  ))}
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
       </View>
     </ImageBackground>
   );
@@ -263,6 +315,56 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     marginTop: 10,
+  },
+
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+  },
+  modalContainer: {
+    width: "80%",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  closeButton: {
+    alignSelf: "flex-end",
+    padding: 10,
+  },
+  closeButtonText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  popupSectionTitle: {
+    fontSize: 25,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  deviceContainer: {
+    padding: 10,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 5,
+    marginBottom: 10,
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  deviceText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  deviceStatus: {
+    fontSize: 14,
+    color: "#666",
   },
 });
 
