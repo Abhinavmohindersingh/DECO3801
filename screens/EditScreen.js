@@ -27,16 +27,6 @@ const ProfileScreen = ({ navigation }) => {
     appliances: false,
     waterUsage: false,
   });
-  // const [isNextEnabled, setIsNextEnabled] = useState(false);
-
-  // useEffect(() => {
-  //   // Check if all required fields have a value
-  //   if (rooms && homeType && occupants) {
-  //     setIsNextEnabled(true);
-  //   } else {
-  //     setIsNextEnabled(false);
-  //   }
-  // }, [rooms, homeType, occupants]);
 
   const handleNextPress = () => {
     // Notify user when not all value is selected
@@ -48,8 +38,8 @@ const ProfileScreen = ({ navigation }) => {
       return;
     }
 
-    // Navigate to the HomeScreen
-    navigation.navigate("Home", {
+    // Navigate to the FlowerPot
+    navigation.navigate("FlowerPot", {
       rooms: rooms,
       homeType: homeType,
       squareFootage: squareFootage,
