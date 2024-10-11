@@ -74,10 +74,14 @@ Before you begin, ensure you have met the following requirements:
 **Open your terminal and run the following commands to clone the repository and navigate to the project folder:**
 
 
-Copy code in terminal 
-**git clone https://github.com/Abhinavmohindersingh/DECO3801.git
+Copy code in terminal:
+
+git clone https://github.com/Abhinavmohindersingh/DECO3801.git
+
 cd DECO3801
-cd winDash**
+
+cd winDash
+
 Install Dependencies
 
 **Once you're in the project directory, install the necessary dependencies:**
@@ -86,6 +90,7 @@ Install Dependencies
 npm install
 
 **Run the Application**
+
 To start the app in development mode, use the following command:
 
 npm run start
