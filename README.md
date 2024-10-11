@@ -64,8 +64,8 @@ Here are some screenshots showcasing the Windash application in action:
 Before you begin, ensure you have met the following requirements:
 
 - **Node.js**: Version 14.x or higher. [Download Node.js](https://nodejs.org/)
-- **React Native CLI** or **Expo CLI**: Depending on your development choice.
-- **Android Studio** or **Xcode**: For mobile device emulation.
+- **React Native : [Getting Started with ReactNative](https://reactnative.dev/docs/environment-setup)
+- **Expo**: For mobile device emulation(https://expo.dev/go).
 - **Git**: For cloning the repository. [Download Git](https://git-scm.com/)
 - **IDE**: Visual Studio Code is recommended. [Download VS Code](https://code.visualstudio.com/)
 
