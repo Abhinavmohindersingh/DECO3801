@@ -75,18 +75,44 @@ Before you begin, ensure you have met the following requirements:
 
 
 Copy code in terminal 
-git clone https://github.com/Abhinavmohindersingh/DECO3801.git
+**git clone https://github.com/Abhinavmohindersingh/DECO3801.git
 cd DECO3801
-cd winDash
+cd winDash**
 Install Dependencies
 
 **Once you're in the project directory, install the necessary dependencies:**
 
 
-npm install
-
+**npm install
+**
 **Run the Application**
 To start the app in development mode, use the following command:
 
-npm run start
+**npm run start
+**
 This will open the development server for your Windash project, and you can proceed with testing or further development on your Android/iOS emulator or device.
+
+
+## Technology Stack
+
+- **Frontend**: React Native
+- **State Management**: Redux or Context API
+- **Backend**: Mongodb or Node.js
+- **AI/ML**: TensorFlow, scikit-learn for trend analysis
+- **Data Visualization**: Victory Native or React Native Charts
+- **Database**: MongoDb for storing user data and energy reports
+
+---
+
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## Troubleshooting
+
+- **App not starting on Android**: Ensure your emulator is running, and the device is connected and authorized for debugging.
+- **App not running on iOS**: Make sure Xcode/Expo is installed and the project is configured properly.
+
