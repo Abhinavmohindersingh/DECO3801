@@ -36,22 +36,22 @@ Windash is an innovative React Native application designed to monitor and track 
 Here are some screenshots showcasing the Windash application in action:
 
 ### 1. **Login Screen**
-![Login Screen](./screenshots/LoginScreen.png)
+![Login Screen](./screenshots/LoginScreen-min.png)
 
 ### 2. **Profile Setup Screen**
-![Profile Setup Screen](./screenshots/ProfileScreen.png)
+![Profile Setup Screen](./screenshots/ProfileScreen-min.png)
 
 ### 3. **FlowerOne Dashboard**
-![FlowerOne Dashboard](./screenshots/FlowerOne.png)
+![FlowerOne Dashboard](./screenshots/FlowerOne-min.png)
 
 ### 4. **Flowerpot Detailed Dashboard**
-![Flowerpot Dashboard](./screenshots/Flowerpot.png)
+![Flowerpot Dashboard](./screenshots/Flowerpot-min.png)
 
 ### 5. **Live Energy Usage**
-![Live Energy Usage](./screenshots/LiveUsage.png)
+![Live Energy Usage](./LiveUsage-min.png)
 
 ### 6. **Bill Estimation Screen**
-![Bill Estimation Screen](./screenshots/BillEstimation.png)
+![Bill Estimation Screen](./screenshots/SpendingScreen-min.png)
 
 *Replace the placeholder image paths (`./screenshots/`) with the actual paths where your screenshots are stored in the repository.*
 
@@ -83,13 +83,13 @@ Install Dependencies
 **Once you're in the project directory, install the necessary dependencies:**
 
 
-**npm install
-**
+npm install
+
 **Run the Application**
 To start the app in development mode, use the following command:
 
-**npm run start
-**
+npm run start
+
 This will open the development server for your Windash project, and you can proceed with testing or further development on your Android/iOS emulator or device.
 
 
