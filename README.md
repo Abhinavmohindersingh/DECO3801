@@ -90,7 +90,7 @@ The bill estimation screen helps users predict their monthly energy bills based 
 Before you begin, ensure you have met the following requirements:
 
 - **Node.js**: Version 14.x or higher. [Download Node.js](https://nodejs.org/)
-- **React Native** :For Mobile Apps [Getting Started with ReactNative].(https://reactnative.dev/docs/environment-setup)
+- **React Native** :For Mobile Apps.(https://reactnative.dev/docs/environment-setup)
 - **Expo**: For mobile device emulation(https://expo.dev/go).
 - **Git**: For cloning the repository. [Download Git](https://git-scm.com/)
 - **IDE**: Visual Studio Code is recommended. [Download VS Code](https://code.visualstudio.com/)
