@@ -39,19 +39,19 @@ Here are some screenshots showcasing the Windash application in action:
 <img src="LoginScreen-min.PNG" alt="Login Screen" width="400">
 
 ### 2. **Profile Setup Screen**
-![Profile Setup Screen](ProfileScreen-min.PNG)
+<img src="ProfileScreen-min.PNG" alt="Profile Setup Screen" width="400">
 
 ### 3. **FlowerOne Dashboard**
-![FlowerOne Dashboard](FlowerOne-min.PNG)
+<img src="FlowerOne-min.PNG" alt="FlowerOne Dashboard" width="400">
 
 ### 4. **Flowerpot Detailed Dashboard**
-![Flowerpot Dashboard](FlowerPot-min.PNG)
+<img src="FlowerPot-min.PNG" alt="Flowerpot Dashboard" width="400">
 
 ### 5. **Live Energy Usage**
-![Live Energy Usage](LiveUsage-min.PNG)
+<img src="LiveUsage-min.PNG" alt="Live Energy Usage" width="400">
 
 ### 6. **Bill Estimation Screen**
-![Bill Estimation Screen](SpendingScreen-min.PNG)
+<img src="SpendingScreen-min.PNG" alt="Bill Estimation Screen" width="400">
 
 *Replace the placeholder image paths (`./screenshots/`) with the actual paths where your screenshots are stored in the repository.*
 
