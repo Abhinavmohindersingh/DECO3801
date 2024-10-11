@@ -70,7 +70,7 @@ The live energy usage screen captures real-time data for all connected devices, 
 ---
 
 ### 7. **Energy Usage Screen**
-<img src="EnergyUsageScreen-min.PNG" alt="Energy Usage Screen" width="400">
+<img src="EnergyUsage-min.PNG" alt="Energy Usage Screen" width="400">
 
 The energy usage screen provides detailed insights into daily, weekly, and monthly energy consumption. Users can analyze their energy usage patterns and make informed decisions to optimize energy savings.
 
