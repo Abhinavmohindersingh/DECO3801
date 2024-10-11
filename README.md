@@ -1,8 +1,9 @@
 # Windash - Energy Monitoring Solution
 
-Windash is a cutting-edge React Native application that allows users to monitor energy usage in their households and gain valuable insights to help optimize consumption. With live tracking, detailed reports, and bill estimation features, users can make informed decisions about their energy consumption habits, ensuring a more sustainable and cost-efficient lifestyle.
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![React Native](https://img.shields.io/badge/React%20Native-0.64.0-blue.svg)](https://reactnative.dev/)
 
----
+Windash is an innovative React Native application designed to monitor and track household energy consumption. By providing real-time data insights, predictive analytics, and interactive reports, Windash empowers users to optimize their energy usage, save costs, and contribute to a greener environment.
 
 ## Table of Contents
 
@@ -14,42 +15,45 @@ Windash is a cutting-edge React Native application that allows users to monitor 
 6. [Technology Stack](#technology-stack)
 7. [Contributing](#contributing)
 8. [License](#license)
+9. [Troubleshooting](#troubleshooting)
 
 ---
 
 ## Features
 
-- **Real-time energy tracking**: Get live energy usage data for each room and appliance in the household.
-- **Predictive insights**: Leverage AI and machine learning to forecast future energy usage.
-- **Interactive dashboard**: Visualize energy consumption and spending in a user-friendly interface.
-- **Customizable reports**: Receive reports based on energy consumption, with an option to personalize based on household setup.
-- **Interactive alerts**: Notifications when energy usage exceeds set thresholds.
-- **Bill estimation**: Predict monthly bills and track spending based on current usage trends.
-- **Engaging UI**: A flower pot visual on the home screen provides quick insights into energy performance.
+- **Real-time Energy Tracking**: Monitor live energy usage across different rooms and appliances.
+- **Predictive Insights**: Utilize AI and machine learning to forecast future energy consumption.
+- **Interactive Dashboard**: Visualize energy data through intuitive charts and graphs.
+- **Customizable Reports**: Generate detailed reports tailored to your household setup.
+- **Interactive Alerts**: Receive notifications when energy usage exceeds predefined thresholds.
+- **Bill Estimation**: Estimate monthly electricity bills based on current usage trends.
+- **Engaging UI**: A flower pot visual on the home screen provides a quick overview of energy performance.
 
 ---
 
 ## Snapshots
 
-Here are some screenshots of Windash in action:
+Here are some screenshots showcasing the Windash application in action:
 
-### 1. **Profile Management Screen**
-![Profile Management Screen](./path-to-your-image-folder/IMG_1800.PNG)
+### 1. **Login Screen**
+![Login Screen](./screenshots/LoginScreen.png)
 
-### 2. **Settings Screen**
-![Settings Screen](./path-to-your-image-folder/IMG_1801.PNG)
+### 2. **Profile Setup Screen**
+![Profile Setup Screen](./screenshots/ProfileScreen.png)
 
-### 3. **Information Screen**
-![Information Screen](./path-to-your-image-folder/IMG_1802.PNG)
+### 3. **FlowerOne Dashboard**
+![FlowerOne Dashboard](./screenshots/FlowerOne.png)
 
-### 4. **Live Energy Usage**
-![Live Energy Usage](./path-to-your-image-folder/IMG_1803.PNG)
+### 4. **Flowerpot Detailed Dashboard**
+![Flowerpot Dashboard](./screenshots/Flowerpot.png)
 
-### 5. **Bill Estimation Screen**
-![Bill Estimation Screen](./path-to-your-image-folder/IMG_1804.PNG)
+### 5. **Live Energy Usage**
+![Live Energy Usage](./screenshots/LiveUsage.png)
 
-### 6. **Weekly and Hourly Usage Graphs**
-![Weekly and Hourly Usage](./path-to-your-image-folder/IMG_1805.PNG)
+### 6. **Bill Estimation Screen**
+![Bill Estimation Screen](./screenshots/BillEstimation.png)
+
+*Replace the placeholder image paths (`./screenshots/`) with the actual paths where your screenshots are stored in the repository.*
 
 ---
 
@@ -57,20 +61,32 @@ Here are some screenshots of Windash in action:
 
 ### Prerequisites
 
-To run Windash, make sure you have the following installed:
+Before you begin, ensure you have met the following requirements:
 
-- Node.js (v14.x or higher)
-- React Native CLI or Expo CLI
-- Android Studio or Xcode for mobile emulation (optional)
-- Physical Android or iOS device (optional)
-- An IDE like Visual Studio Code (recommended)
+- **Node.js**: Version 14.x or higher. [Download Node.js](https://nodejs.org/)
+- **React Native CLI** or **Expo CLI**: Depending on your development choice.
+- **Android Studio** or **Xcode**: For mobile device emulation.
+- **Git**: For cloning the repository. [Download Git](https://git-scm.com/)
+- **IDE**: Visual Studio Code is recommended. [Download VS Code](https://code.visualstudio.com/)
 
 ### Step-by-Step Installation
 
-1. **Clone the repository**
+**Open your terminal and run the following commands to clone the repository and navigate to the project folder:**
 
-   Open your terminal and clone the Windash repository:
 
-   ```bash
-   git clone https://github.com/yourusername/windash.git
-   cd windash
+Copy code in terminal 
+git clone https://github.com/Abhinavmohindersingh/DECO3801.git
+cd DECO3801
+cd winDash
+Install Dependencies
+
+**Once you're in the project directory, install the necessary dependencies:**
+
+
+npm install
+
+**Run the Application**
+To start the app in development mode, use the following command:
+
+npm run start
+This will open the development server for your Windash project, and you can proceed with testing or further development on your Android/iOS emulator or device.
