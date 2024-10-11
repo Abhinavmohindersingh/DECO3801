@@ -39,19 +39,19 @@ Here are some screenshots showcasing the Windash application in action:
 ![Login Screen](LoginScreen-min.PNG)
 
 ### 2. **Profile Setup Screen**
-![Profile Setup Screen](./screenshots/ProfileScreen-min.png)
+![Profile Setup Screen](ProfileScreen-min.png)
 
 ### 3. **FlowerOne Dashboard**
-![FlowerOne Dashboard](./screenshots/FlowerOne-min.png)
+![FlowerOne Dashboard](FlowerOne-min.png)
 
 ### 4. **Flowerpot Detailed Dashboard**
-![Flowerpot Dashboard](./screenshots/Flowerpot-min.png)
+![Flowerpot Dashboard](Flowerpot-min.png)
 
 ### 5. **Live Energy Usage**
-![Live Energy Usage](./LiveUsage-min.png)
+![Live Energy Usage](LiveUsage-min.png)
 
 ### 6. **Bill Estimation Screen**
-![Bill Estimation Screen](./screenshots/SpendingScreen-min.png)
+![Bill Estimation Screen](SpendingScreen-min.png)
 
 *Replace the placeholder image paths (`./screenshots/`) with the actual paths where your screenshots are stored in the repository.*
 
