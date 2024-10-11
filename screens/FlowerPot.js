@@ -9,6 +9,7 @@ import {
   Modal,
   TouchableWithoutFeedback,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 import { Canvas } from "@react-three/fiber";
 import Icon from "react-native-vector-icons/Ionicons";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
@@ -51,6 +52,7 @@ const FlowerPot = () => {
   const [numColumns, setNumColumns] = useState(2); // Default to 2 columns
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState("");
+
   const [devices, setDevices] = useState([
     { name: "Light", status: "On" },
     { name: "Fan", status: "Off" },
@@ -67,22 +69,20 @@ const FlowerPot = () => {
     useCallback(() => {
       console.log("useFocusEffect triggered");
       try {
-        const { rooms, roomNames } = route.params || {};
-        setRooms(rooms);
-        setRoomNames(roomNames);
+        const { rooms, roomNames } = route.params || {}; // Deconstructing with fallback to empty object
+        setRooms(rooms || "1"); // Fallback to default value
+        setRoomNames(roomNames || ["Default Room"]); // Fallback to default value
         console.log("Rooms received:", rooms);
         console.log("Room Names received:", roomNames);
       } catch (error) {
         console.log("Error receiving params, setting default values");
-        setRooms("Default Room");
-        setRoomNames(["Default Room Name"]);
       }
     }, [route.params])
   );
 
   const handleMenuItemClick = (href) => {
     // Navigate to the desired screen
-    navigation.navigate(href);
+    navigation.navigate(href, { rooms: rooms, roomNames: roomNames });
   };
 
   const handleRoomIconClick = (room) => {
@@ -248,6 +248,7 @@ const FlowerPot = () => {
                   </Text>
                   {selectedRoom === "Rooms" ? (
                     <View>
+                      <Text>{roomNames}</Text>
                       {roomNames.map((roomName, index) => (
                         <TouchableOpacity
                           key={index}

@@ -11,13 +11,26 @@ import {
 } from "react-native";
 
 import Background from "../components/Background";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
-const SettingsScreen = ({ navigation }) => {
+const SettingsScreen = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [personalInfoVisible, setPersonalInfoVisible] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { rooms, roomNames } = route.params;
+  const [updatedRooms, setUpdatedRooms] = useState(rooms);
+  const [updatedRoomNames, setUpdatedRoomNames] = useState(roomNames);
+
+  const handleBackPress = () => {
+    navigation.navigate("FlowerPot", {
+      rooms: updatedRooms,
+      roomNames: updatedRoomNames,
+    });
+  };
 
   return (
     <Background>

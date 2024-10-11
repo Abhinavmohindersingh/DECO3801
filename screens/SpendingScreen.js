@@ -1,12 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { PieChart } from "react-native-svg-charts";
 import Background from "../components/Background";
-import { useNavigation } from "@react-navigation/native"; // Import the hook
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 const SpendingScreen = () => {
-  const navigation = useNavigation(); // Use the hook to get the navigation prop
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { rooms, roomNames } = route.params;
+  const [updatedRooms, setUpdatedRooms] = useState(rooms);
+  const [updatedRoomNames, setUpdatedRoomNames] = useState(roomNames);
 
+  const handleBackPress = () => {
+    navigation.navigate("FlowerPot", {
+      rooms: updatedRooms,
+      roomNames: updatedRoomNames,
+    });
+  };
   const hourlyData = [
     { value: 33.33, svg: { fill: "#00C49F" }, key: "pie-1" },
     { value: 33.33, svg: { fill: "#FFBB28" }, key: "pie-2" },
@@ -57,7 +67,7 @@ const SpendingScreen = () => {
       {/* Back Button */}
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => navigation.navigate("FlowerPot")} // Use navigation to go to "Flowerpot"
+        onPress={() => handleBackPress()} // Use navigation to go to "Flowerpot"
       >
         <Text style={styles.backButtonText}>Back to Flowerpot</Text>
       </TouchableOpacity>
