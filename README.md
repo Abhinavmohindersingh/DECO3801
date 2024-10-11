@@ -36,7 +36,7 @@ Windash is an innovative React Native application designed to monitor and track 
 Here are some screenshots showcasing the Windash application in action:
 
 ### 1. **Login Screen**
-![Login Screen](./screenshots/LoginScreen-min.PNG)
+![Login Screen](LoginScreen-min.PNG)
 
 ### 2. **Profile Setup Screen**
 ![Profile Setup Screen](./screenshots/ProfileScreen-min.png)
