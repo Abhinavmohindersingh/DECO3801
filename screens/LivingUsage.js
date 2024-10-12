@@ -1,30 +1,55 @@
-import React, { useState, useEffect } from "react";
+// LivingUsage.js
+import React, { useState, useEffect, useContext, useMemo } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Modal,
   Dimensions,
+  FlatList,
+  Switch,
   ImageBackground,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { BarChart } from "react-native-chart-kit";
-import FlowerPot from "./FlowerPot";
-import { useNavigation } from "@react-navigation/native";
-
-// Rooms data
-const rooms = [
-  { name: "Television", icon: "television", consumption: 0.4 },
-  { name: "Lamp", icon: "lamp", consumption: 0.1 },
-  { name: "Console", icon: "gamepad-variant", consumption: 0.2 },
-  { name: "Sound ", icon: "speaker", consumption: 0.3 },
-  { name: "AC", icon: "air-conditioner", consumption: 1.8 },
-  { name: "Light", icon: "lightbulb-on-outline", consumption: 0.1 },
-];
+import { AppContext } from "../AppContext"; // Adjust the path as needed
 
 const LivingUsage = ({ navigation }) => {
-  const [runningRooms, setRunningRooms] = useState({});
+  const { profileData, setProfileData } = useContext(AppContext);
+  const selectedDevices = profileData.devices.livingroom || [];
+  const [showAddDeviceModal, setShowAddDeviceModal] = useState(false);
+
+  // All possible living room devices with their properties
+  const allDevices = [
+    { name: "TV", icon: "television", consumption: 0.4 },
+    { name: "Lamp", icon: "lamp", consumption: 0.1 },
+    { name: "Gaming Console", icon: "gamepad-variant", consumption: 0.2 },
+    { name: "Sound System", icon: "speaker", consumption: 0.3 },
+    { name: "Air Conditioner", icon: "air-conditioner", consumption: 1.8 },
+    { name: "Light", icon: "lightbulb-on-outline", consumption: 0.1 },
+    // Add any other devices as needed
+  ];
+
+  // Memoize the devices array to prevent unnecessary re-renders
+  const devices = useMemo(
+    () => allDevices.filter((device) => selectedDevices.includes(device.name)),
+    [selectedDevices]
+  );
+  const handleAddDevice = () => {
+    setShowAddDeviceModal(true);
+  };
+
+  const [runningDevices, setRunningDevices] = useState(() => {
+    // Initialize runningDevices when the component mounts
+    const initialState = devices.reduce((acc, device) => {
+      acc[device.name] = true;
+      return acc;
+    }, {});
+    return initialState;
+  });
+
   const [totalConsumption, setTotalConsumption] = useState(0);
   const [chartData, setChartData] = useState({
     labels: [],
@@ -32,13 +57,15 @@ const LivingUsage = ({ navigation }) => {
   });
 
   useEffect(() => {
-    // Simulate random rooms being active/inactive
-    const initialState = rooms.reduce((acc, room) => {
-      acc[room.name] = Math.random() < 0.5;
-      return acc;
-    }, {});
-    setRunningRooms(initialState);
-  }, []);
+    // Update runningDevices when devices change
+    setRunningDevices((prevState) => {
+      const newRunningDevices = devices.reduce((acc, device) => {
+        acc[device.name] = prevState[device.name] ?? true;
+        return acc;
+      }, {});
+      return newRunningDevices;
+    });
+  }, [devices]);
 
   useEffect(() => {
     // Calculate total consumption and update chart data
@@ -46,29 +73,44 @@ const LivingUsage = ({ navigation }) => {
     const labels = [];
     const data = [];
 
-    rooms.forEach((room) => {
-      const isActive = runningRooms[room.name];
-      const consumption = isActive ? room.consumption : 0;
+    devices.forEach((device) => {
+      const isActive = runningDevices[device.name];
+      const consumption = isActive ? device.consumption : 0;
       total += consumption;
 
-      if (isActive) {
-        labels.push(room.name);
-        data.push(consumption);
-      }
+      labels.push(device.name);
+      data.push(consumption);
     });
 
     setTotalConsumption(total);
     setChartData({ labels, datasets: [{ data }] });
-  }, [runningRooms]);
+  }, [runningDevices, devices]);
 
-  // Toggle the status of a room (ON/OFF)
-  const toggleRoom = (roomName) => {
-    setRunningRooms((prev) => ({
+  // Toggle the status of a device (ON/OFF)
+  const toggleDevice = (deviceName) => {
+    setRunningDevices((prev) => ({
       ...prev,
-      [roomName]: !prev[roomName],
+      [deviceName]: !prev[deviceName],
     }));
   };
+  const toggleDeviceSelection = (deviceName) => {
+    setProfileData((prevData) => {
+      const updatedDevices = { ...prevData.devices };
+      const deviceList = updatedDevices.livingroom || [];
 
+      if (deviceList.includes(deviceName)) {
+        // Remove device
+        updatedDevices.livingroom = deviceList.filter(
+          (name) => name !== deviceName
+        );
+      } else {
+        // Add device
+        updatedDevices.livingroom = [...deviceList, deviceName];
+      }
+
+      return { ...prevData, devices: updatedDevices };
+    });
+  };
   // Chart configuration
   const chartConfig = {
     backgroundGradientFrom: "#ffffff",
@@ -91,7 +133,7 @@ const LivingUsage = ({ navigation }) => {
       </TouchableOpacity>
 
       <ScrollView style={styles.container}>
-        <Text style={styles.title}>Live Energy Usage</Text>
+        <Text style={styles.title}>Living Room Usage</Text>
 
         <View style={styles.totalConsumption}>
           <Icon name="lightning-bolt" size={40} color="#FFD700" />
@@ -117,34 +159,74 @@ const LivingUsage = ({ navigation }) => {
           </View>
         )}
 
-        <View style={styles.roomsContainer}>
-          {rooms.map((room) => (
+        <View style={styles.devicesContainer}>
+          {devices.map((device) => (
             <TouchableOpacity
-              key={room.name}
+              key={device.name}
               style={[
-                styles.roomItem,
+                styles.deviceItem,
                 {
-                  backgroundColor: runningRooms[room.name]
+                  backgroundColor: runningDevices[device.name]
                     ? "rgba(76, 175, 80, 0.7)"
                     : "rgba(244, 67, 54, 0.7)",
                 },
               ]}
-              onPress={() => toggleRoom(room.name)}
+              onPress={() => toggleDevice(device.name)}
             >
-              <Icon name={room.icon} size={30} color="white" />
-              <View style={styles.roomInfo}>
-                <Text style={styles.roomName}>{room.name}</Text>
-                <Text style={styles.roomConsumption}>
-                  {room.consumption} kWh/hr
+              <Icon name={device.icon} size={30} color="white" />
+              <View style={styles.deviceInfo}>
+                <Text style={styles.deviceName}>{device.name}</Text>
+                <Text style={styles.deviceConsumption}>
+                  {device.consumption} kWh/hr
                 </Text>
               </View>
-              <Text style={styles.roomStatus}>
-                {runningRooms[room.name] ? "ON" : "OFF"}
+              <Text style={styles.deviceStatus}>
+                {runningDevices[device.name] ? "ON" : "OFF"}
               </Text>
             </TouchableOpacity>
           ))}
+          <TouchableOpacity
+            style={styles.addDeviceItem}
+            onPress={handleAddDevice}
+          >
+            <Icon name="plus" size={50} color="white" />
+          </TouchableOpacity>
         </View>
       </ScrollView>
+      {showAddDeviceModal && (
+        <Modal
+          visible={showAddDeviceModal}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowAddDeviceModal(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Add Devices</Text>
+              <FlatList
+                data={allDevices}
+                keyExtractor={(item) => item.name}
+                renderItem={({ item }) => (
+                  <View style={styles.modalItem}>
+                    <Text style={styles.modalItemText}>{item.name}</Text>
+                    <Switch
+                      value={selectedDevices.includes(item.name)}
+                      onValueChange={() => toggleDeviceSelection(item.name)}
+                    />
+                  </View>
+                )}
+                ItemSeparatorComponent={() => <View style={styles.separator} />}
+              />
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={() => setShowAddDeviceModal(false)}
+              >
+                <Text style={styles.buttonText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
     </ImageBackground>
   );
 };
@@ -158,12 +240,11 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
   },
-
   backButton: {
     position: "absolute",
-    top: 40, // Position it at the top
-    left: 10, // Adjust to your preference
-    backgroundColor: "blue", // Blue background
+    top: 40,
+    left: 10,
+    backgroundColor: "blue",
     padding: 10,
     borderRadius: 20,
     width: 50,
@@ -174,7 +255,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
   },
-
   title: {
     fontSize: 24,
     fontWeight: "bold",
@@ -206,13 +286,13 @@ const styles = StyleSheet.create({
   chart: {
     borderRadius: 16,
   },
-  roomsContainer: {
+  devicesContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
   },
-  roomItem: {
-    width: "48%", // Adjust as needed to fit two items per row with some spacing
+  deviceItem: {
+    width: "48%",
     flexDirection: "column",
     alignItems: "center",
     padding: 15,
@@ -221,22 +301,80 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#fff",
   },
-  roomInfo: {
+  deviceInfo: {
     alignItems: "center",
     marginTop: 10,
   },
-  roomName: {
+  deviceName: {
     fontSize: 16,
     fontWeight: "bold",
     color: "white",
     textAlign: "center",
   },
-  roomConsumption: {
+  deviceConsumption: {
     fontSize: 14,
     color: "white",
     marginTop: 5,
   },
-  roomStatus: {
+  addDeviceItem: {
+    width: "48%",
+    height: 150,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 15,
+    borderRadius: 20,
+    marginBottom: 15,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+  },
+  modalContent: {
+    backgroundColor: "#333",
+    marginHorizontal: 20,
+    borderRadius: 10,
+    padding: 20,
+    maxHeight: "80%",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#fff",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  modalItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+  },
+  modalItemText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.1)",
+  },
+  saveButton: {
+    backgroundColor: "#4CAF50",
+    paddingVertical: 12,
+    borderRadius: 25,
+    alignItems: "center",
+    marginTop: 15,
+    paddingHorizontal: 30,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  deviceStatus: {
     fontSize: 16,
     fontWeight: "bold",
     color: "white",

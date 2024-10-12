@@ -114,9 +114,12 @@ const FlowerPot = () => {
         <View style={styles.roomIconsContainer}>
           <View style={styles.roomIcons}>
             <View style={styles.iconWrapper}>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("RoomsUsage")}
+              >
                 <Icon name="bed-outline" size={40} color="#fff" />
               </TouchableOpacity>
+
               <Text style={styles.iconLabel}>Rooms</Text>
             </View>
             <View style={styles.iconWrapper}>
