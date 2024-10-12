@@ -30,9 +30,9 @@ const menuOptions = [
     href: "EstimatedBillScreen",
   },
   {
-    name: "Distr. Consumption",
+    name: "Live Usage",
     iconName: "chart-bar",
-    href: "DistrConsumptionScreen",
+    href: "LiveUsage",
   },
   { name: "Info", iconName: "information", href: "InfoScreen" },
   { name: "Settings", iconName: "cogs", href: "SettingsScreen" },
@@ -97,7 +97,7 @@ const FlowerPot = () => {
             <ambientLight intensity={0} />
             <directionalLight position={[5, 5, 5]} intensity={1} />
             <Environment preset="city" />
-            <PerspectiveCamera makeDefault position={[0, 7, 7]} />
+            <PerspectiveCamera makeDefault position={[0, 5, 9]} />
             <OrbitControls />
             <Model position={[0, -1, 0]} />
             <ContactShadows
@@ -120,13 +120,17 @@ const FlowerPot = () => {
               <Text style={styles.iconLabel}>Rooms</Text>
             </View>
             <View style={styles.iconWrapper}>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("KitchenUsage")}
+              >
                 <Icon name="restaurant-outline" size={40} color="#fff" />
               </TouchableOpacity>
               <Text style={styles.iconLabel}>Kitchen</Text>
             </View>
             <View style={styles.iconWrapper}>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("LivingUsage")}
+              >
                 <MaterialCommunityIcons
                   name="sofa-outline"
                   size={40}
@@ -136,7 +140,9 @@ const FlowerPot = () => {
               <Text style={styles.iconLabel}>Living Room</Text>
             </View>
             <View style={styles.iconWrapper}>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("LaundryUsage")}
+              >
                 <MaterialCommunityIcons
                   name="washing-machine"
                   size={40}
