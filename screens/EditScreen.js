@@ -1,12 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
   Image,
+  Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import Background from "../components/Background";
@@ -14,7 +14,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import logo from "../icons/windashlog.png";
 import { useNavigation } from "@react-navigation/native";
 
-const EditScreen = ({ navigation }) => {
+const ProfileScreen = ({ navigation }) => {
   const [rooms, setRooms] = useState("");
   const [homeType, setHomeType] = useState("");
   const [squareFootage, setSquareFootage] = useState("");
@@ -29,8 +29,25 @@ const EditScreen = ({ navigation }) => {
   });
 
   const handleNextPress = () => {
-    // Navigate to the HomeScreen
-    navigation.navigate("Home");
+    // Notify user when not all value is selected
+    if (rooms == "" || homeType == "" || occupants == "") {
+      Alert.alert(
+        "Incomplete Information",
+        "Please select values for all required fields before proceeding."
+      );
+      return;
+    }
+
+    // Navigate to the FlowerPot
+    navigation.navigate("FlowerPot", {
+      rooms: rooms,
+      homeType: homeType,
+      squareFootage: squareFootage,
+      occupants: occupants,
+      dailyUsage: dailyUsage,
+      energySource: energySource,
+      energyPreferences: energyPreferences,
+    });
   };
 
   const togglePreference = (key) => {
@@ -41,7 +58,7 @@ const EditScreen = ({ navigation }) => {
   };
 
   return (
-    <Background>
+    <Background style={styles.back}>
       <View style={styles.logoContainer}>
         <Image source={logo} style={styles.logo} />
       </View>
@@ -51,7 +68,7 @@ const EditScreen = ({ navigation }) => {
         style={styles.scrollView}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Edit Your Profile</Text>
+          <Text style={styles.title}>Profile Management</Text>
           <Text style={styles.subtitle}>
             Help us understand your home better!
           </Text>
@@ -84,11 +101,11 @@ const EditScreen = ({ navigation }) => {
               style={styles.picker}
             >
               <Picker.Item label="Select Home Type" value="" />
-              <Picker.Item label="Apartment" value="apartment" />
-              <Picker.Item label="Single-family home" value="singleFamily" />
-              <Picker.Item label="Townhouse" value="townhouse" />
-              <Picker.Item label="Condo" value="condo" />
-              <Picker.Item label="Other" value="other" />
+              <Picker.Item label="Apartment" value="Apartment" />
+              <Picker.Item label="Single-family home" value="Single Family" />
+              <Picker.Item label="Townhouse" value="Townhouse" />
+              <Picker.Item label="Condo" value="Condo" />
+              <Picker.Item label="Other" value="Other" />
             </Picker>
           </View>
 
@@ -104,12 +121,17 @@ const EditScreen = ({ navigation }) => {
               <Picker.Item label="2" value="2" />
               <Picker.Item label="3" value="3" />
               <Picker.Item label="4" value="4" />
-              <Picker.Item label="5+" value="5+" />
+              <Picker.Item label="5" value="5" />
+              <Picker.Item label="6" value="6" />
+              <Picker.Item label="7" value="7" />
+              <Picker.Item label="8" value="8" />
+              <Picker.Item label="9" value="9" />
+              <Picker.Item label="10" value="10" />
             </Picker>
           </View>
         </View>
 
-        <View style={styles.formSection}>
+        {/* <View style={styles.formSection}>
           <Text style={styles.sectionTitle}>Energy Source Information</Text>
           <View style={styles.inputContainer}>
             <Icon name="power" size={24} color="#fff" style={styles.icon} />
@@ -126,13 +148,15 @@ const EditScreen = ({ navigation }) => {
               <Picker.Item label="Other" value="other" />
             </Picker>
           </View>
-        </View>
+        </View> */}
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.saveButton}>
-            <Text style={styles.buttonText}>Save</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.nextButton} onPress={handleNextPress}>
+          <TouchableOpacity
+            // style={[styles.nextButton, !isNextEnabled && styles.disabledButton]}
+            style={[styles.nextButton]}
+            onPress={handleNextPress}
+            // disabled={!isNextEnabled}
+          >
             <Text style={styles.buttonText}>Next</Text>
           </TouchableOpacity>
         </View>
@@ -143,10 +167,13 @@ const EditScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    flex: 1,
+    justifyContent: "center", // Center vertically
+    alignItems: "center", // Center horizontally
+    padding: 20,
+    // paddingHorizontal: 20,
+    // paddingBottom: 20,
+    // marginLeft: 50,
+    // flex: 1,
   },
   header: {
     marginBottom: 30,
@@ -157,6 +184,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#fff",
     marginBottom: 10,
+    textAlign: "center", // Center text
   },
   subtitle: {
     fontSize: 16,
@@ -165,6 +193,8 @@ const styles = StyleSheet.create({
   },
   formSection: {
     marginBottom: 30,
+    width: "100%", // Ensure full width
+    alignItems: "center", // Center horizontally
   },
   sectionTitle: {
     fontSize: 20,
@@ -173,6 +203,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     textTransform: "uppercase",
     letterSpacing: 1,
+    textAlign: "center", // Center text
   },
   scrollView: {
     flex: 1,
@@ -187,9 +218,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 15,
     height: 60,
+    width: "100%", // Ensure full width
   },
   logoContainer: {
     alignItems: "center",
+    marginLeft: 20,
     marginVertical: 20,
   },
   logo: {
@@ -202,13 +235,13 @@ const styles = StyleSheet.create({
   },
   picker: {
     flex: 1,
-
     color: "#fff",
   },
   buttonContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     marginTop: 20,
+    width: "100%", // Ensure full width
   },
   saveButton: {
     backgroundColor: "#4CAF50",
@@ -225,7 +258,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     borderRadius: 25,
     alignItems: "center",
-    flex: 1,
+    width: "30%",
+    flex: 0.5,
   },
   buttonText: {
     color: "#fff",
@@ -234,4 +268,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default EditScreen;
+export default ProfileScreen;

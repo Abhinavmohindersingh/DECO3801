@@ -39,7 +39,15 @@ const ProfileScreen = ({ navigation }) => {
 
   const handleBackPress = () => {
     // Navigate back to the previous screen (no validation needed now)
-    navigation.goBack();
+    // Notify user when not all value is selected
+    if (rooms == "" || homeType == "" || occupants == "") {
+      Alert.alert(
+        "Incomplete Information",
+        "Please select values for all required fields before proceeding."
+      );
+      return;
+    }
+    navigation.navigate("FlowerPot", { rooms: rooms, roomNames: roomNames });
   };
 
   const renderDropdown = (options, setSelectedValue, setShowModal) => {

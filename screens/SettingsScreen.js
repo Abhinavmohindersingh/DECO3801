@@ -11,13 +11,26 @@ import {
 } from "react-native";
 
 import Background from "../components/Background";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
-const SettingsScreen = ({ navigation }) => {
+const SettingsScreen = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [personalInfoVisible, setPersonalInfoVisible] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { rooms, roomNames } = route.params;
+  const [updatedRooms, setUpdatedRooms] = useState(rooms);
+  const [updatedRoomNames, setUpdatedRoomNames] = useState(roomNames);
+
+  const handleBackPress = () => {
+    navigation.navigate("FlowerPot", {
+      rooms: updatedRooms,
+      roomNames: updatedRoomNames,
+    });
+  };
 
   return (
     <Background>
@@ -138,13 +151,16 @@ const SettingsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     marginTop: 80,
-    marginLeft: 8,
-    width: "100%",
+    marginLeft: 13,
+    width: "95%",
     flex: 1,
     opacity: 0.9, // Increased opacity for better visibility
+    justifyContent: "center", // Center vertically
+    alignItems: "center", // Center horizontally
   },
   section: {
     padding: 20,
+    width: "100%", // Ensure full width
   },
   sectionTitle: {
     fontSize: 20, // Increased font size
@@ -154,6 +170,7 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0, 0, 0, 0.75)", // Added text shadow for better contrast
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
+    textAlign: "center", // Center text
   },
   text: {
     color: "white",
@@ -162,16 +179,19 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0, 0, 0, 0.75)", // Added text shadow for better contrast
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
+    textAlign: "center", // Center text
   },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 10,
+    width: "100%", // Ensure full width
   },
   separator: {
     height: 2,
     backgroundColor: "rgba(255, 255, 255, 0.8)",
+    width: "100%", // Ensure full width
   },
   link: {
     color: "#4da6ff",
@@ -181,6 +201,7 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0, 0, 0, 0.75)", // Added text shadow for better contrast
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
+    textAlign: "center", // Center text
   },
   description: {
     marginBottom: 5,
@@ -190,6 +211,7 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0, 0, 0, 0.75)", // Added text shadow for better contrast
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
+    textAlign: "center", // Center text
   },
   modalView: {
     margin: 20,
@@ -214,6 +236,7 @@ const styles = StyleSheet.create({
     textShadowColor: "rgba(0, 0, 0, 0.75)", // Added text shadow for better contrast
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
+    textAlign: "center", // Center text
   },
   input: {
     height: 40,
@@ -225,6 +248,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     color: "white",
     fontWeight: "bold",
+    textAlign: "center", // Center text
   },
   modalButtons: {
     flexDirection: "row",
