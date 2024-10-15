@@ -10,8 +10,8 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { BarChart } from "react-native-chart-kit";
-import FlowerPot from "./FlowerPot";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 
 // Rooms data
 const rooms = [
@@ -23,7 +23,10 @@ const rooms = [
   { name: "Laundry", icon: "washing-machine", consumption: 1.7 }, // Added Laundry
 ];
 
-const LiveUsage = ({ navigation }) => {
+const STORAGE_KEY = "@runningRoomsState"; // Key to store the state in AsyncStorage
+
+const LiveUsage = () => {
+  const navigation = useNavigation();
   const [runningRooms, setRunningRooms] = useState({});
   const [totalConsumption, setTotalConsumption] = useState(0);
   const [chartData, setChartData] = useState({
@@ -31,13 +34,42 @@ const LiveUsage = ({ navigation }) => {
     datasets: [{ data: [] }],
   });
 
+  // Save runningRooms state to AsyncStorage
+  const saveRunningRoomsState = async (state) => {
+    try {
+      const jsonValue = JSON.stringify(state);
+      await AsyncStorage.setItem(STORAGE_KEY, jsonValue);
+    } catch (e) {
+      console.error("Failed to save state.", e);
+    }
+  };
+
+  // Load runningRooms state from AsyncStorage
+  const loadRunningRoomsState = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
+      return jsonValue != null ? JSON.parse(jsonValue) : null;
+    } catch (e) {
+      console.error("Failed to load state.", e);
+    }
+  };
+
   useEffect(() => {
-    // Simulate random rooms being active/inactive
-    const initialState = rooms.reduce((acc, room) => {
-      acc[room.name] = Math.random() < 0.5;
-      return acc;
-    }, {});
-    setRunningRooms(initialState);
+    const loadInitialState = async () => {
+      const savedState = await loadRunningRoomsState();
+      if (savedState) {
+        setRunningRooms(savedState);
+      } else {
+        // If no saved state, simulate random rooms being active/inactive
+        const initialState = rooms.reduce((acc, room) => {
+          acc[room.name] = Math.random() < 0.5;
+          return acc;
+        }, {});
+        setRunningRooms(initialState);
+      }
+    };
+
+    loadInitialState();
   }, []);
 
   useEffect(() => {
@@ -59,6 +91,9 @@ const LiveUsage = ({ navigation }) => {
 
     setTotalConsumption(total);
     setChartData({ labels, datasets: [{ data }] });
+
+    // Save the running rooms state after every change
+    saveRunningRoomsState(runningRooms);
   }, [runningRooms]);
 
   // Toggle the status of a room (ON/OFF)
@@ -85,7 +120,7 @@ const LiveUsage = ({ navigation }) => {
     >
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => navigation.navigate("FlowerPot")}
+        onPress={() => navigation.navigate("FlowerPot", { totalConsumption })}
       >
         <Text style={styles.backButtonText}>←</Text>
       </TouchableOpacity>
@@ -161,9 +196,9 @@ const styles = StyleSheet.create({
 
   backButton: {
     position: "absolute",
-    top: 40, // Position it at the top
-    left: 10, // Adjust to your preference
-    backgroundColor: "rgba(0,0,0,0.5)", // Semi-transparent for better visibility
+    top: 40,
+    left: 10,
+    backgroundColor: "rgba(0,0,0,0.5)",
     padding: 10,
     borderRadius: 20,
     width: 50,
@@ -212,7 +247,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   roomItem: {
-    width: "48%", // Adjust as needed to fit two items per row with some spacing
+    width: "48%",
     flexDirection: "column",
     alignItems: "center",
     padding: 15,

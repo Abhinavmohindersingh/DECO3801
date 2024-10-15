@@ -20,6 +20,7 @@ import LaundryUsage from "./screens/LaundryUsage";
 import RoomsUsage from "./screens/RoomsUsage";
 import { AppProvider } from "./AppContext";
 import RoomDetailsScreen from "./screens/RoomDetailsScreen";
+import EnergyLimit from "./screens/EnergyLimit";
 
 const Stack = createStackNavigator();
 
@@ -29,9 +30,9 @@ const App = () => {
     <AppProvider>
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {/* <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} /> */}
-          {/* <Stack.Screen name="Login" component={LoginScreen} /> */}
           <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+
+          <Stack.Screen name="EnergyLimit" component={EnergyLimit} />
 
           <Stack.Screen name="AccountScreen" component={AccountScreen} />
 

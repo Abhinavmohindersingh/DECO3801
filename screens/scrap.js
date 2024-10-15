@@ -13,7 +13,7 @@ import { Canvas } from "@react-three/fiber";
 import Icon from "react-native-vector-icons/Ionicons";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 
 import {
   ContactShadows,
@@ -21,9 +21,7 @@ import {
   OrbitControls,
   PerspectiveCamera,
 } from "@react-three/drei";
-import { Model } from "../components/Model";
-import { ModelBad } from "../components/ModelBad";
-import { ModelNeutral } from "../components/ModelNeutral";
+import { ModelBad } from "../components/Model";
 
 const menuOptions = [
   { name: "PredictViz", iconName: "chart-line", href: "EnergyUsage" },
@@ -44,8 +42,7 @@ const menuOptions = [
 
 const FlowerPot = () => {
   const navigation = useNavigation(); // Initialize navigation
-  const [numColumns, setNumColumns] = useState(2); // Default to
-  const route = useRoute(); // Now using the useRoute hook to access route parameters
+  const [numColumns, setNumColumns] = useState(2); // Default to 2 columns
   const handleFlashPress = () => {
     setModalVisible(true);
   };
@@ -53,8 +50,6 @@ const FlowerPot = () => {
     // Navigate to the desired screen
     navigation.navigate(href);
   };
-
-  const { totalConsumption = 0 } = route.params || {};
 
   const renderMenuOption = ({ item }) => (
     <TouchableOpacity
@@ -69,17 +64,6 @@ const FlowerPot = () => {
   // State for Modal
   const [modalVisible, setModalVisible] = useState(false);
   const [currentUsage, setCurrentUsage] = useState(8); // Example usage value
-
-  // Function to return the correct flower pot model based on usage
-  const getFlowerPotModel = () => {
-    if (totalConsumption < 5) {
-      return <Model position={[0, -1, 0]} />;
-    } else if (totalConsumption >= 5 && totalConsumption < 8) {
-      return <ModelNeutral position={[0, -1, 0]} />;
-    } else {
-      return <ModelBad position={[0, -1, 0]} />;
-    }
-  };
 
   return (
     <ImageBackground
@@ -103,9 +87,7 @@ const FlowerPot = () => {
               <Icon name="flash-outline" size={50} color="yellow" />
             </TouchableOpacity>
 
-            <Text style={{ color: "white", fontSize: 30 }}>
-              {totalConsumption.toFixed(2)} kWh
-            </Text>
+            <Text style={{ color: "white", fontSize: 30 }}>: 8kWh</Text>
           </View>
 
           <TouchableOpacity
@@ -119,20 +101,18 @@ const FlowerPot = () => {
           <Canvas
             style={{
               width: "100%",
-              height: "100%",
+              height: 0,
             }}
             shadows
             gl={{ alpha: true }}
           >
-            <ambientLight intensity={0.5} />
+            <color attach="red" args={["white"]} />
+            <ambientLight intensity={0} />
             <directionalLight position={[5, 5, 5]} intensity={1} />
             <Environment preset="city" />
             <PerspectiveCamera makeDefault position={[0, 5, 9]} />
             <OrbitControls />
-
-            {/* Dynamically render the correct flower pot model based on usage */}
-            {getFlowerPotModel()}
-
+            <Model position={[0, -1, 0]} />
             <ContactShadows
               position={[0, 0, 0]}
               opacity={0.5}
@@ -198,7 +178,7 @@ const FlowerPot = () => {
             keyExtractor={(item) => item.name}
             numColumns={numColumns} // Use the numColumns state
             ListHeaderComponent={<Text style={styles.menuTitle}></Text>}
-            key={numColumns}
+            key={numColumns} // Provide a unique key based on numColumns
           />
         </View>
       </View>

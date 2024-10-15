@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -12,8 +11,6 @@ import {
 import { LineChart, BarChart } from "react-native-chart-kit";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Background from "../components/Background";
-
-var count = 0;
 
 const EnergyUsage = ({ navigation }) => {
   const [energyUsage, setEnergyUsage] = useState(0);
@@ -54,83 +51,6 @@ const EnergyUsage = ({ navigation }) => {
     ],
   });
 
-  const predictedCumsumArray = [2, 4, 6, 8, 4, 10];
-
-  useEffect(() => {
-    const dataIntervalId = setInterval(updateChartData, 3000);
-    const serverIntervalId = setInterval(sendDataToServer, 3000);
-
-    return () => {
-      clearInterval(dataIntervalId);
-      clearInterval(serverIntervalId);
-    };
-  }, []);
-
-  const sendDataToServer = async () => {
-    const predicted_cumsum =
-      predictedCumsumArray[count % predictedCumsumArray.length];
-    const data = {
-      timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-      predicted_cumsum: predicted_cumsum,
-    };
-
-    try {
-      await axios.post("http://34.40.131.213:4000/fake", data);
-      console.log("Data sent:", data);
-    } catch (error) {
-      console.error("Error sending data:", error);
-    }
-  };
-
-  const updateChartData = () => {
-    setChartDataWeekly((prevState) => {
-      const newData = [
-        ...prevState.datasets[0].data.slice(1),
-        predictedCumsumArray[count],
-      ];
-      setEnergyUsage(predictedCumsumArray[count]);
-      count = (count + 1) % predictedCumsumArray.length;
-
-      return {
-        labels: prevState.labels,
-        datasets: [{ data: newData }],
-      };
-    });
-
-    setChartDataDaily((prevState) => {
-      const newData = [
-        ...prevState.datasets[0].data.slice(1),
-        predictedCumsumArray[count],
-      ];
-      return {
-        labels: prevState.labels,
-        datasets: [{ data: newData }],
-      };
-    });
-
-    setBarChartDataWeekly((prevState) => {
-      const newData = [
-        ...prevState.datasets[0].data.slice(1),
-        predictedCumsumArray[count],
-      ];
-      return {
-        labels: prevState.labels,
-        datasets: [{ data: newData }],
-      };
-    });
-
-    setBarChartDataDaily((prevState) => {
-      const newData = [
-        ...prevState.datasets[0].data.slice(1),
-        predictedCumsumArray[count],
-      ];
-      return {
-        labels: prevState.labels,
-        datasets: [{ data: newData }],
-      };
-    });
-  };
-
   return (
     <Background>
       {/* Back Button */}
@@ -146,10 +66,6 @@ const EnergyUsage = ({ navigation }) => {
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.energySubtext}>Predict Usage</Text>
-            <View style={styles.energyUsageRow}>
-              <Icon name="lightning-bolt" size={50} color="white" />
-              <Text style={styles.energyText}>: {energyUsage} kWh</Text>
-            </View>
           </View>
 
           {/* Weekly Energy Usage Section */}
@@ -172,6 +88,11 @@ const EnergyUsage = ({ navigation }) => {
                   bezier
                   style={styles.chartStyle}
                 />
+
+                <View style={styles.energyUsageRow}>
+                  <Icon name="lightning-bolt" size={40} color="yellow" />
+                  <Text style={styles.energyText}>: {energyUsage} kWh</Text>
+                </View>
               </View>
 
               {/* Weekly Bar Chart */}
@@ -209,6 +130,11 @@ const EnergyUsage = ({ navigation }) => {
                   bezier
                   style={styles.chartStyle}
                 />
+
+                <View style={styles.energyUsageRow}>
+                  <Icon name="lightning-bolt" size={40} color="yellow" />
+                  <Text style={styles.energyText}>: {energyUsage} kWh</Text>
+                </View>
               </View>
 
               {/* Daily Bar Chart */}
@@ -227,17 +153,6 @@ const EnergyUsage = ({ navigation }) => {
           </View>
         </ScrollView>
       </TouchableWithoutFeedback>
-
-      {/* Footer with button to go back to the Flowerpot screen */}
-      {/* Optional: Remove this footer if the top back button suffices */}
-      {/* <View style={styles.footer}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("FlowerPot")}
-          style={styles.wideButton}
-        >
-          <Icon name="arrow-left" size={50} width={80} color="white" />
-        </TouchableOpacity>
-      </View> */}
     </Background>
   );
 };
@@ -280,13 +195,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   energyText: {
-    fontSize: 36,
+    fontSize: 30,
     fontWeight: "bold",
     color: "#FFFFFF",
     marginLeft: 10,
   },
   energySubtext: {
-    fontSize: 20,
+    fontSize: 30,
     marginTop: 10,
     color: "white",
     fontWeight: "bold",
@@ -310,22 +225,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginVertical: 20,
   },
-  footer: {
-    padding: 20,
-    alignItems: "center",
-  },
-  wideButton: {
-    backgroundColor: "#0066cc",
-    padding: 15,
-    borderRadius: 25,
-  },
-  wideButtonText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-
-  // **New Styles for Back Button**
   backButton: {
     position: "absolute",
     top: 40, // Adjust based on your layout

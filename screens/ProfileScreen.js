@@ -85,7 +85,7 @@ const ProfileScreen = ({ navigation }) => {
 
   const handleBackPress = () => {
     saveData();
-    navigation.navigate("FlowerPot");
+    navigation.navigate("EnergyLimit");
   };
 
   const renderDropdown = (options, handleSelection, setShowModal) => {

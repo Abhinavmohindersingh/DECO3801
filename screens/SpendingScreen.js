@@ -1,11 +1,32 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { PieChart } from "react-native-svg-charts";
 import Background from "../components/Background";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native"; // Import the hook
 
 const SpendingScreen = () => {
   const navigation = useNavigation(); // Use the hook to get the navigation prop
+  const [storedLimit, setStoredLimit] = useState(null);
+  const [storedCycle, setStoredCycle] = useState(null);
+
+  useEffect(() => {
+    const loadLimitAndCycle = async () => {
+      try {
+        const savedLimit = await AsyncStorage.getItem("energyLimit");
+        const savedCycle = await AsyncStorage.getItem("billCycle");
+        if (savedLimit !== null) {
+          setStoredLimit(savedLimit);
+        }
+        if (savedCycle !== null) {
+          setStoredCycle(savedCycle);
+        }
+      } catch (error) {
+        console.error("Error loading limit or cycle from storage:", error);
+      }
+    };
+    loadLimitAndCycle();
+  }, []);
 
   const hourlyData = [
     { value: 33.33, svg: { fill: "#00C49F" }, key: "pie-1" },
@@ -44,12 +65,16 @@ const SpendingScreen = () => {
             <Text style={styles.statsLabel}>Usage</Text>
           </View>
           <View style={styles.statsItem}>
-            <Text style={styles.statsValue}>$146.34</Text>
-            <Text style={styles.statsLabel}>Cost</Text>
+            <Text style={styles.statsValue}>
+              {storedLimit ? `$${storedLimit}` : "$0.00"}
+            </Text>
+            <Text style={styles.statsLabel}>Budget</Text>
           </View>
           <View style={styles.statsItem}>
-            <Text style={styles.statsValue}>13 Days</Text>
-            <Text style={styles.statsLabel}>Remaining</Text>
+            <Text style={styles.statsValue}>
+              {storedCycle ? `${storedCycle} Days` : "N/A"}
+            </Text>
+            <Text style={styles.statsLabel}>Billing Cycle</Text>
           </View>
         </View>
       </View>
