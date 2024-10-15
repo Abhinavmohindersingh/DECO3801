@@ -1,27 +1,23 @@
-// LivingUsage.js
-import React, { useState, useEffect, useContext, useMemo } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Modal,
   Dimensions,
-  FlatList,
-  Switch,
   ImageBackground,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { BarChart } from "react-native-chart-kit";
-import { AppContext } from "../AppContext"; // Adjust the path as needed
+import { AppContext } from "../AppContext"; // Adjust path
 
-const LivingUsage = ({ navigation }) => {
-  const { profileData, setProfileData } = useContext(AppContext);
-  const selectedDevices = profileData.devices.livingroom || [];
-  const [showAddDeviceModal, setShowAddDeviceModal] = useState(false);
+const RoomDetailsScreen = ({ route, navigation }) => {
+  const { profileData } = useContext(AppContext);
+  const { roomName } = route.params;
 
-  // All possible living room devices with their properties
+  // Devices for the selected room
+  const selectedDevices = profileData.devices[roomName.toLowerCase()] || [];
   const allDevices = [
     { name: "TV", icon: "television", consumption: 0.4 },
     { name: "Lamp", icon: "lamp", consumption: 0.1 },
@@ -29,26 +25,18 @@ const LivingUsage = ({ navigation }) => {
     { name: "Sound System", icon: "speaker", consumption: 0.3 },
     { name: "Air Conditioner", icon: "air-conditioner", consumption: 1.8 },
     { name: "Light", icon: "lightbulb-on-outline", consumption: 0.1 },
-    // Add any other devices as needed
   ];
 
-  // Memoize the devices array to prevent unnecessary re-renders
-  const devices = useMemo(
-    () => allDevices.filter((device) => selectedDevices.includes(device.name)),
-    [selectedDevices]
+  const devices = allDevices.filter((device) =>
+    selectedDevices.includes(device.name)
   );
-  const handleAddDevice = () => {
-    setShowAddDeviceModal(true);
-  };
 
-  const [runningDevices, setRunningDevices] = useState(() => {
-    // Initialize runningDevices when the component mounts
-    const initialState = devices.reduce((acc, device) => {
+  const [runningDevices, setRunningDevices] = useState(
+    devices.reduce((acc, device) => {
       acc[device.name] = true;
       return acc;
-    }, {});
-    return initialState;
-  });
+    }, {})
+  );
 
   const [totalConsumption, setTotalConsumption] = useState(0);
   const [chartData, setChartData] = useState({
@@ -56,19 +44,8 @@ const LivingUsage = ({ navigation }) => {
     datasets: [{ data: [] }],
   });
 
+  // Effect to calculate total consumption and update chart data
   useEffect(() => {
-    // Update runningDevices when devices change
-    setRunningDevices((prevState) => {
-      const newRunningDevices = devices.reduce((acc, device) => {
-        acc[device.name] = prevState[device.name] ?? true;
-        return acc;
-      }, {});
-      return newRunningDevices;
-    });
-  }, [devices]);
-
-  useEffect(() => {
-    // Calculate total consumption and update chart data
     let total = 0;
     const labels = [];
     const data = [];
@@ -82,36 +59,20 @@ const LivingUsage = ({ navigation }) => {
       data.push(consumption);
     });
 
-    setTotalConsumption(total);
-    setChartData({ labels, datasets: [{ data }] });
-  }, [runningDevices, devices]);
+    // Only update state if necessary to prevent excessive re-renders
+    if (total !== totalConsumption) {
+      setTotalConsumption(total);
+      setChartData({ labels, datasets: [{ data }] });
+    }
+  }, [runningDevices, devices, totalConsumption]);
 
-  // Toggle the status of a device (ON/OFF)
   const toggleDevice = (deviceName) => {
     setRunningDevices((prev) => ({
       ...prev,
       [deviceName]: !prev[deviceName],
     }));
   };
-  const toggleDeviceSelection = (deviceName) => {
-    setProfileData((prevData) => {
-      const updatedDevices = { ...prevData.devices };
-      const deviceList = updatedDevices.livingroom || [];
 
-      if (deviceList.includes(deviceName)) {
-        // Remove device
-        updatedDevices.livingroom = deviceList.filter(
-          (name) => name !== deviceName
-        );
-      } else {
-        // Add device
-        updatedDevices.livingroom = [...deviceList, deviceName];
-      }
-
-      return { ...prevData, devices: updatedDevices };
-    });
-  };
-  // Chart configuration
   const chartConfig = {
     backgroundGradientFrom: "#ffffff",
     backgroundGradientTo: "#ffffff",
@@ -127,13 +88,13 @@ const LivingUsage = ({ navigation }) => {
     >
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => navigation.navigate("FlowerPot")}
+        onPress={() => navigation.goBack()}
       >
         <Text style={styles.backButtonText}>←</Text>
       </TouchableOpacity>
 
       <ScrollView style={styles.container}>
-        <Text style={styles.title}>Living Room Usage</Text>
+        <Text style={styles.title}>{roomName} Usage</Text>
 
         <View style={styles.totalConsumption}>
           <Icon name="lightning-bolt" size={40} color="#FFD700" />
@@ -185,48 +146,8 @@ const LivingUsage = ({ navigation }) => {
               </Text>
             </TouchableOpacity>
           ))}
-          <TouchableOpacity
-            style={styles.addDeviceItem}
-            onPress={handleAddDevice}
-          >
-            <Icon name="plus" size={50} color="white" />
-          </TouchableOpacity>
         </View>
       </ScrollView>
-      {showAddDeviceModal && (
-        <Modal
-          visible={showAddDeviceModal}
-          transparent={true}
-          animationType="slide"
-          onRequestClose={() => setShowAddDeviceModal(false)}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Add Devices</Text>
-              <FlatList
-                data={allDevices}
-                keyExtractor={(item) => item.name}
-                renderItem={({ item }) => (
-                  <View style={styles.modalItem}>
-                    <Text style={styles.modalItemText}>{item.name}</Text>
-                    <Switch
-                      value={selectedDevices.includes(item.name)}
-                      onValueChange={() => toggleDeviceSelection(item.name)}
-                    />
-                  </View>
-                )}
-                ItemSeparatorComponent={() => <View style={styles.separator} />}
-              />
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={() => setShowAddDeviceModal(false)}
-              >
-                <Text style={styles.buttonText}>Done</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-      )}
     </ImageBackground>
   );
 };
@@ -316,64 +237,6 @@ const styles = StyleSheet.create({
     color: "white",
     marginTop: 5,
   },
-  addDeviceItem: {
-    width: "48%",
-    height: 150,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 15,
-    borderRadius: 20,
-    marginBottom: 15,
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
-    borderWidth: 2,
-    borderColor: "#fff",
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-  },
-  modalContent: {
-    backgroundColor: "#333",
-    marginHorizontal: 20,
-    borderRadius: 10,
-    padding: 20,
-    maxHeight: "80%",
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#fff",
-    marginBottom: 15,
-    textAlign: "center",
-  },
-  modalItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-  },
-  modalItemText: {
-    color: "#fff",
-    fontSize: 16,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.1)",
-  },
-  saveButton: {
-    backgroundColor: "#4CAF50",
-    paddingVertical: 12,
-    borderRadius: 25,
-    alignItems: "center",
-    marginTop: 15,
-    paddingHorizontal: 30,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
   deviceStatus: {
     fontSize: 16,
     fontWeight: "bold",
@@ -382,4 +245,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LivingUsage;
+export default RoomDetailsScreen;

@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 40,
     left: 10,
-    backgroundColor: "blue",
+    backgroundColor: "rgba(0,0,0,0.5)", // Semi-transparent for better visibility
     padding: 10,
     borderRadius: 20,
     width: 50,

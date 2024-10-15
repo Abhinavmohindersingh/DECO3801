@@ -5,7 +5,9 @@ import {
   ImageBackground,
   Text,
   FlatList,
+  Modal,
   TouchableOpacity,
+  Dimensions,
 } from "react-native";
 import { Canvas } from "@react-three/fiber";
 import Icon from "react-native-vector-icons/Ionicons";
@@ -22,15 +24,15 @@ import {
 import { Model } from "../components/Model";
 
 const menuOptions = [
-  { name: "Energy Usage", iconName: "chart-line", href: "EnergyUsage" },
+  { name: "PredictViz", iconName: "chart-line", href: "EnergyUsage" },
   { name: "Spendings", iconName: "currency-usd", href: "SpendingScreen" },
   {
-    name: "Estimated Bill",
+    name: "Energy Usage",
     iconName: "trending-up",
     href: "EstimatedBillScreen",
   },
   {
-    name: "Live Usage",
+    name: "Live",
     iconName: "chart-bar",
     href: "LiveUsage",
   },
@@ -41,7 +43,9 @@ const menuOptions = [
 const FlowerPot = () => {
   const navigation = useNavigation(); // Initialize navigation
   const [numColumns, setNumColumns] = useState(2); // Default to 2 columns
-
+  const handleFlashPress = () => {
+    setModalVisible(true);
+  };
   const handleMenuItemClick = (href) => {
     // Navigate to the desired screen
     navigation.navigate(href);
@@ -57,6 +61,10 @@ const FlowerPot = () => {
     </TouchableOpacity>
   );
 
+  // State for Modal
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentUsage, setCurrentUsage] = useState(8); // Example usage value
+
   return (
     <ImageBackground
       source={require("../icons/background.jpeg")}
@@ -71,9 +79,14 @@ const FlowerPot = () => {
               justifyContent: "space-around",
             }}
           >
-            <View style={styles.iconContainer}>
-              <Icon name="flash-outline" size={50} color="#fff" />
-            </View>
+            {/* Flash Icon with TouchableOpacity */}
+            <TouchableOpacity
+              onPress={handleFlashPress}
+              style={styles.iconContainer}
+            >
+              <Icon name="flash-outline" size={50} color="yellow" />
+            </TouchableOpacity>
+
             <Text style={{ color: "white", fontSize: 30 }}>: 8kWh</Text>
           </View>
 
@@ -169,6 +182,34 @@ const FlowerPot = () => {
           />
         </View>
       </View>
+
+      {/* Modal for Current Usage */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPressOut={() => setModalVisible(false)}
+        >
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>Current Energy Usage</Text>
+            <Text style={styles.modalDescription}>
+              Your current energy usage is {currentUsage} kWh. This reflects the
+              total energy consumed by your household appliances today.
+            </Text>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.modalCloseButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </ImageBackground>
   );
 };
@@ -217,6 +258,30 @@ const styles = StyleSheet.create({
     zIndex: 0,
     marginTop: 0,
     overflow: "hidden",
+  },
+  modalOverlay: {
+    postion: "absolute",
+    top: 80,
+    left: 0,
+    justifyContent: "left",
+    alignItems: "center",
+  },
+  modalView: {
+    width: Dimensions.get("window").width - 100,
+    backgroundColor: "rgba(119, 119, 119, 0.7)",
+    color: "white",
+    fontWeight: 15,
+    borderRadius: 20,
+    padding: 5,
+    alignItems: "left",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   roomIcons: {
     position: "absolute",

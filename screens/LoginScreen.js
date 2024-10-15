@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import Background from "../components/Background";
 import Button from "../components/Button";
-import { Ionicons } from "@expo/vector-icons"; // Importing icons for the eye icon
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Animated, Easing } from "react-native";
@@ -21,8 +21,8 @@ const LoginScreen = () => {
   const [username, setusername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // Toggle for showing password
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Toggle for showing confirm password
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [isLogin, setIsLogin] = useState(true);
 
@@ -54,7 +54,7 @@ const LoginScreen = () => {
       {
         scale: glowAnim.interpolate({
           inputRange: [0, 1],
-          outputRange: [1, 1.05], // Slight glow effect by scaling
+          outputRange: [1, 1.05],
         }),
       },
     ],
@@ -86,10 +86,8 @@ const LoginScreen = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Login successful, navigate to the Home screen
         navigation.navigate("Home");
       } else {
-        // Login failed, display the error message
         alert(data.message || "Login failed. Please check your credentials.");
       }
     } catch (error) {
@@ -123,7 +121,7 @@ const LoginScreen = () => {
     const data = await response.json();
 
     if (response.ok) {
-      // Handle successful signup, e.g., navigate to Profile screen
+      // Handle successful signup
       navigation.navigate("Profile", { isSignUp: true });
     } else {
       // Handle signup failure, show error message
@@ -162,6 +160,7 @@ const LoginScreen = () => {
             onChangeText={setusername}
             keyboardType="username"
             autoCapitalize="none"
+            maxLength={30}
           />
         </View>
         <View style={styles.formGroup}>
@@ -170,7 +169,8 @@ const LoginScreen = () => {
             style={styles.input}
             value={password}
             onChangeText={setPassword}
-            secureTextEntry={!showConfirmPassword} // Toggle confirm password visibility
+            secureTextEntry={!showConfirmPassword}
+            maxLength={30}
           />
           <TouchableOpacity
             style={styles.eyeIcon}
@@ -192,6 +192,7 @@ const LoginScreen = () => {
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry
+              maxLength={30}
             />
           </View>
         )}

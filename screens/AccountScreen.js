@@ -1,4 +1,4 @@
-// ProfileScreen.js
+// AccountScreen.js
 import React, { useState, useEffect, useRef, useContext } from "react";
 import {
   View,
@@ -22,7 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { height } = Dimensions.get("window");
 
-const ProfileScreen = ({ navigation }) => {
+const AccountScreen = ({ navigation }) => {
   const scrollViewRef = useRef(null);
 
   // Access profileData and setProfileData from context
@@ -535,4 +535,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProfileScreen;
+export default AccountScreen;

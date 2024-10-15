@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 40, // Position it at the top
     left: 10, // Adjust to your preference
-    backgroundColor: "blue", // Blue background
+    backgroundColor: "rgba(0,0,0,0.5)", // Semi-transparent for better visibility
     padding: 10,
     borderRadius: 20,
     width: 50,
