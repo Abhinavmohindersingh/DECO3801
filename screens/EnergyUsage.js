@@ -33,7 +33,7 @@ const EnergyUsage = () => {
     ],
   });
 
-  const [chartDataHourly, setChartDataHourly] = useState({
+  const [chartDataDaily, setChartDataDaily] = useState({
     labels: ["12AM", "3AM", "6AM", "9AM", "12PM", "3PM", "6PM", "9PM"],
     datasets: [
       {
@@ -51,7 +51,7 @@ const EnergyUsage = () => {
     ],
   });
 
-  const [barChartDataHourly, setBarChartDataHourly] = useState({
+  const [barChartDataDaily, setBarChartDataDaily] = useState({
     labels: ["12AM", "3AM", "6AM", "9AM", "12PM", "3PM", "6PM", "9PM"],
     datasets: [
       {
@@ -110,7 +110,7 @@ const EnergyUsage = () => {
       };
     });
 
-    setChartDataHourly((prevState) => {
+    setChartDataDaily((prevState) => {
       const newData = [
         ...prevState.datasets[0].data.slice(1),
         predictedCumsumArray[count],
@@ -132,7 +132,7 @@ const EnergyUsage = () => {
       };
     });
 
-    setBarChartDataHourly((prevState) => {
+    setBarChartDataDaily((prevState) => {
       const newData = [
         ...prevState.datasets[0].data.slice(1),
         predictedCumsumArray[count],
@@ -146,11 +146,19 @@ const EnergyUsage = () => {
 
   return (
     <Background>
+      {/* Back Button */}
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()} // Navigates to the previous screen
+      >
+        <Text style={styles.backButtonText}>←</Text>
+      </TouchableOpacity>
+
       <TouchableWithoutFeedback>
         <ScrollView style={styles.container}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.energySubtext}>Today's Usage</Text>
+            <Text style={styles.energySubtext}>Predict Usage</Text>
             <View style={styles.energyUsageRow}>
               <Icon name="lightning-bolt" size={50} color="white" />
               <Text style={styles.energyText}>: {energyUsage} kWh</Text>
@@ -194,18 +202,18 @@ const EnergyUsage = () => {
             </ScrollView>
           </View>
 
-          {/* Hourly Energy Usage Section */}
+          {/* Daily Energy Usage Section */}
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>Hourly Energy Usage</Text>
+            <Text style={styles.sectionTitle}>Daily Energy Usage</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               pagingEnabled
             >
-              {/* Hourly Line Chart */}
+              {/* Daily Line Chart */}
               <View style={styles.chartContainer}>
                 <LineChart
-                  data={chartDataHourly}
+                  data={chartDataDaily}
                   width={Dimensions.get("window").width - 40}
                   height={200}
                   yAxisLabel=""
@@ -216,10 +224,10 @@ const EnergyUsage = () => {
                 />
               </View>
 
-              {/* Hourly Bar Chart */}
+              {/* Daily Bar Chart */}
               <View style={styles.chartContainer}>
                 <BarChart
-                  data={barChartDataHourly}
+                  data={barChartDataDaily}
                   width={Dimensions.get("window").width - 40}
                   height={200}
                   yAxisLabel=""
@@ -234,14 +242,15 @@ const EnergyUsage = () => {
       </TouchableWithoutFeedback>
 
       {/* Footer with button to go back to the Flowerpot screen */}
-      <View style={styles.footer}>
+      {/* Optional: Remove this footer if the top back button suffices */}
+      {/* <View style={styles.footer}>
         <TouchableOpacity
           onPress={() => handleBackPress()}
           style={styles.wideButton}
         >
           <Icon name="arrow-left" size={50} width={80} color="white" />
         </TouchableOpacity>
-      </View>
+      </View> */}
     </Background>
   );
 };
@@ -275,13 +284,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+    alignItems: "center", // Center the content horizontally
     marginBottom: 20,
   },
   energyUsageRow: {
     flexDirection: "row",
     alignItems: "center",
+    marginTop: 10,
   },
   energyText: {
     fontSize: 36,
@@ -290,24 +299,25 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   energySubtext: {
-    marginTop: 15,
-    marginLeft: 10,
     fontSize: 20,
+    marginTop: 10,
     color: "white",
     fontWeight: "bold",
   },
-  sectionContainer: {},
+  sectionContainer: {
+    marginBottom: 20,
+  },
   sectionTitle: {
     marginLeft: 10,
     fontSize: 25,
     fontWeight: "bold",
     color: "#FFFFFF",
-    marginBottom: 0,
+    marginBottom: 10,
   },
   chartContainer: {
     paddingLeft: 20,
     paddingBottom: 20,
-    width: Dimensions.get("window").width, // Make sure each chart takes full width
+    width: Dimensions.get("window").width - 10, // Ensure each chart takes appropriate width
   },
   chartStyle: {
     borderRadius: 16,
@@ -326,6 +336,26 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 18,
     fontWeight: "bold",
+  },
+
+  // **New Styles for Back Button**
+  backButton: {
+    position: "absolute",
+    top: 40, // Adjust based on your layout
+    left: 10, // Adjust based on your layout
+    backgroundColor: "rgba(0,0,0,0.5)", // Semi-transparent for better visibility
+    padding: 10,
+    borderRadius: 20,
+    width: 50,
+    zIndex: 1, // Ensure the button is on top
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  backButtonText: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
 

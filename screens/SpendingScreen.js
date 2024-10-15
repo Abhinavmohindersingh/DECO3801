@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 650,
     left: 90,
-    backgroundColor: "#0066cc",
+    backgroundColor: "rgba(0,0,0,0.5)", // Semi-transparent for better visibility
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 5,

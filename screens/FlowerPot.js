@@ -5,9 +5,9 @@ import {
   ImageBackground,
   Text,
   FlatList,
-  TouchableOpacity,
   Modal,
-  TouchableWithoutFeedback,
+  TouchableOpacity,
+  Dimensions,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 import { Canvas } from "@react-three/fiber";
@@ -30,17 +30,17 @@ import { Model } from "../components/Model";
 import { SkeletonHelper } from "three";
 
 const menuOptions = [
-  { name: "Energy Usage", iconName: "chart-line", href: "EnergyUsage" },
+  { name: "PredictViz", iconName: "chart-line", href: "EnergyUsage" },
   { name: "Spendings", iconName: "currency-usd", href: "SpendingScreen" },
   {
-    name: "Estimated Bill",
+    name: "Energy Usage",
     iconName: "trending-up",
     href: "EstimatedBillScreen",
   },
   {
-    name: "Distr. Consumption",
+    name: "Live",
     iconName: "chart-bar",
-    href: "DistrConsumptionScreen",
+    href: "LiveUsage",
   },
   { name: "Info", iconName: "information", href: "InfoScreen" },
   { name: "Settings", iconName: "cogs", href: "SettingsScreen" },
@@ -50,36 +50,9 @@ const FlowerPot = () => {
   const navigation = useNavigation(); // Initialize navigation
   const route = useRoute(); // Get the route to access parameters
   const [numColumns, setNumColumns] = useState(2); // Default to 2 columns
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState("");
-
-  const [devices, setDevices] = useState([
-    { name: "Light", status: "On" },
-    { name: "Fan", status: "Off" },
-    // Add more devices as needed
-  ]);
-  const [roomFlag, setRoomFlag] = useState(false);
-
-  // Set default values
-  const [rooms, setRooms] = useState("1");
-  const [roomNames, setRoomNames] = useState(["Main Room"]);
-
-  // Update values when new data is received
-  useFocusEffect(
-    useCallback(() => {
-      console.log("useFocusEffect triggered");
-      try {
-        const { rooms, roomNames } = route.params || {}; // Deconstructing with fallback to empty object
-        setRooms(rooms || "1"); // Fallback to default value
-        setRoomNames(roomNames || ["Default Room"]); // Fallback to default value
-        console.log("Rooms received:", rooms);
-        console.log("Room Names received:", roomNames);
-      } catch (error) {
-        console.log("Error receiving params, setting default values");
-      }
-    }, [route.params])
-  );
-
+  const handleFlashPress = () => {
+    setModalVisible(true);
+  };
   const handleMenuItemClick = (href) => {
     // Navigate to the desired screen
     navigation.navigate(href, { rooms: rooms, roomNames: roomNames });
@@ -122,6 +95,10 @@ const FlowerPot = () => {
     </TouchableOpacity>
   );
 
+  // State for Modal
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentUsage, setCurrentUsage] = useState(8); // Example usage value
+
   return (
     <ImageBackground
       source={require("../icons/background.jpeg")}
@@ -136,9 +113,14 @@ const FlowerPot = () => {
               justifyContent: "space-around",
             }}
           >
-            <View style={styles.iconContainer}>
-              <Icon name="flash-outline" size={50} color="#fff" />
-            </View>
+            {/* Flash Icon with TouchableOpacity */}
+            <TouchableOpacity
+              onPress={handleFlashPress}
+              style={styles.iconContainer}
+            >
+              <Icon name="flash-outline" size={50} color="yellow" />
+            </TouchableOpacity>
+
             <Text style={{ color: "white", fontSize: 30 }}>: 8kWh</Text>
           </View>
 
@@ -162,7 +144,7 @@ const FlowerPot = () => {
             <ambientLight intensity={0} />
             <directionalLight position={[5, 5, 5]} intensity={1} />
             <Environment preset="city" />
-            <PerspectiveCamera makeDefault position={[0, 7, 7]} />
+            <PerspectiveCamera makeDefault position={[0, 5, 9]} />
             <OrbitControls />
             <Model position={[0, -1, 0]} />
             <ContactShadows
@@ -179,20 +161,25 @@ const FlowerPot = () => {
         <View style={styles.roomIconsContainer}>
           <View style={styles.roomIcons}>
             <View style={styles.iconWrapper}>
-              <TouchableOpacity onPress={() => handleRoomIconClick("Rooms")}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("RoomsUsage")}
+              >
                 <Icon name="bed-outline" size={40} color="#fff" />
               </TouchableOpacity>
+
               <Text style={styles.iconLabel}>Rooms</Text>
             </View>
             <View style={styles.iconWrapper}>
-              <TouchableOpacity onPress={() => handleRoomIconClick("Kitchen")}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("KitchenUsage")}
+              >
                 <Icon name="restaurant-outline" size={40} color="#fff" />
               </TouchableOpacity>
               <Text style={styles.iconLabel}>Kitchen</Text>
             </View>
             <View style={styles.iconWrapper}>
               <TouchableOpacity
-                onPress={() => handleRoomIconClick("LivingRoom")}
+                onPress={() => navigation.navigate("LivingUsage")}
               >
                 <MaterialCommunityIcons
                   name="sofa-outline"
@@ -203,7 +190,9 @@ const FlowerPot = () => {
               <Text style={styles.iconLabel}>Living Room</Text>
             </View>
             <View style={styles.iconWrapper}>
-              <TouchableOpacity onPress={() => handleRoomIconClick("Laundry")}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("LaundryUsage")}
+              >
                 <MaterialCommunityIcons
                   name="washing-machine"
                   size={40}
@@ -279,6 +268,34 @@ const FlowerPot = () => {
           </TouchableWithoutFeedback>
         </Modal>
       </View>
+
+      {/* Modal for Current Usage */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPressOut={() => setModalVisible(false)}
+        >
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>Current Energy Usage</Text>
+            <Text style={styles.modalDescription}>
+              Your current energy usage is {currentUsage} kWh. This reflects the
+              total energy consumed by your household appliances today.
+            </Text>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.modalCloseButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </ImageBackground>
   );
 };
@@ -327,6 +344,30 @@ const styles = StyleSheet.create({
     zIndex: 0,
     marginTop: 0,
     overflow: "hidden",
+  },
+  modalOverlay: {
+    postion: "absolute",
+    top: 80,
+    left: 0,
+    justifyContent: "left",
+    alignItems: "center",
+  },
+  modalView: {
+    width: Dimensions.get("window").width - 100,
+    backgroundColor: "rgba(119, 119, 119, 0.7)",
+    color: "white",
+    fontWeight: 15,
+    borderRadius: 20,
+    padding: 5,
+    alignItems: "left",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   roomIcons: {
     position: "absolute",

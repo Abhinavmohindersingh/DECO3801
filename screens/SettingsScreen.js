@@ -34,6 +34,13 @@ const SettingsScreen = () => {
 
   return (
     <Background>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()} // Navigates to the previous screen
+      >
+        <Text style={styles.backButtonText}>←</Text>
+      </TouchableOpacity>
+
       <View style={styles.container}>
         <Text style={styles.heading}>Settings</Text>
         <View style={styles.separator} />
@@ -57,7 +64,7 @@ const SettingsScreen = () => {
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Personal Information</Text>
-            <TouchableOpacity onPress={() => navigation.navigate("Edit")}>
+            <TouchableOpacity onPress={() => setPersonalInfoVisible(true)}>
               <Text style={styles.link}>Edit Personal Details</Text>
             </TouchableOpacity>
           </View>
@@ -67,7 +74,7 @@ const SettingsScreen = () => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>About WINDASH</Text>
             <Text style={styles.description}>
-              WINDASH is a leading provider of energy monitoring of Household.
+              WINDASH is a leading provider of energy monitoring for households.
             </Text>
             <Text style={styles.description}>Version: 1.0.0</Text>
           </View>
@@ -255,16 +262,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     width: "100%",
   },
-  heading: {
-    fontSize: 36, // Increased font size
-    fontWeight: "bold",
-    color: "white",
-    textAlign: "center",
-    marginBottom: 20,
-    textShadowColor: "rgba(0, 0, 0, 0.75)", // Added text shadow for better contrast
-    textShadowOffset: { width: -1, height: 1 },
-    textShadowRadius: 10,
-  },
   button: {
     borderRadius: 5,
     padding: 10,
@@ -282,6 +279,34 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     fontSize: 16, // Increased font size
+  },
+  heading: {
+    fontSize: 36, // Increased font size
+    fontWeight: "bold",
+    color: "white",
+    textAlign: "center",
+    marginBottom: 20,
+    textShadowColor: "rgba(0, 0, 0, 0.75)", // Added text shadow for better contrast
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
+  },
+
+  // **New Styles for Back Button**
+  backButton: {
+    position: "absolute",
+    top: 40, // Adjust based on your layout
+    left: 10, // Adjust based on your layout
+    backgroundColor: "rgba(0,0,0,0.5)", // Semi-transparent for better visibility
+    padding: 10,
+    borderRadius: 20,
+    width: 50,
+    zIndex: 1,
+  },
+  backButtonText: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
 
