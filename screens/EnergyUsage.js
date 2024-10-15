@@ -12,16 +12,10 @@ import {
 import { LineChart, BarChart } from "react-native-chart-kit";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Background from "../components/Background";
-import { useNavigation, useRoute } from "@react-navigation/native";
 
 var count = 0;
 
-const EnergyUsage = () => {
-  const navigation = useNavigation();
-  const route = useRoute();
-  const { rooms, roomNames } = route.params;
-  const [updatedRooms, setUpdatedRooms] = useState(rooms);
-  const [updatedRoomNames, setUpdatedRoomNames] = useState(roomNames);
+const EnergyUsage = ({ navigation }) => {
   const [energyUsage, setEnergyUsage] = useState(0);
 
   const [chartDataWeekly, setChartDataWeekly] = useState({
@@ -61,13 +55,6 @@ const EnergyUsage = () => {
   });
 
   const predictedCumsumArray = [2, 4, 6, 8, 4, 10];
-
-  const handleBackPress = () => {
-    navigation.navigate("FlowerPot", {
-      rooms: updatedRooms,
-      roomNames: updatedRoomNames,
-    });
-  };
 
   useEffect(() => {
     const dataIntervalId = setInterval(updateChartData, 3000);
@@ -245,7 +232,7 @@ const EnergyUsage = () => {
       {/* Optional: Remove this footer if the top back button suffices */}
       {/* <View style={styles.footer}>
         <TouchableOpacity
-          onPress={() => handleBackPress()}
+          onPress={() => navigation.navigate("FlowerPot")}
           style={styles.wideButton}
         >
           <Icon name="arrow-left" size={50} width={80} color="white" />

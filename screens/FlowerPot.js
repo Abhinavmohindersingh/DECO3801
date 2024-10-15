@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState } from "react";
 import {
   View,
   StyleSheet,
@@ -9,16 +9,11 @@ import {
   TouchableOpacity,
   Dimensions,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 import { Canvas } from "@react-three/fiber";
 import Icon from "react-native-vector-icons/Ionicons";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import {
-  useNavigation,
-  useRoute,
-  useFocusEffect,
-} from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 
 import {
   ContactShadows,
@@ -27,7 +22,6 @@ import {
   PerspectiveCamera,
 } from "@react-three/drei";
 import { Model } from "../components/Model";
-import { SkeletonHelper } from "three";
 
 const menuOptions = [
   { name: "PredictViz", iconName: "chart-line", href: "EnergyUsage" },
@@ -48,41 +42,13 @@ const menuOptions = [
 
 const FlowerPot = () => {
   const navigation = useNavigation(); // Initialize navigation
-  const route = useRoute(); // Get the route to access parameters
   const [numColumns, setNumColumns] = useState(2); // Default to 2 columns
   const handleFlashPress = () => {
     setModalVisible(true);
   };
   const handleMenuItemClick = (href) => {
     // Navigate to the desired screen
-    navigation.navigate(href, { rooms: rooms, roomNames: roomNames });
-  };
-
-  const handleRoomIconClick = (room) => {
-    // Set the selected room and show the modal
-    setSelectedRoom(room);
-    setModalVisible(true);
-  };
-
-  const handleRoomNameClick = (roomName) => {
-    // Set the selected room name and show the modal
-    setModalVisible(false);
-    setTimeout(() => {
-      setSelectedRoom(roomName);
-      setModalVisible(true);
-      setRoomFlag(true);
-    }, 100);
-  };
-
-  const closeModal = () => {
-    setModalVisible(false);
-    if (roomFlag == true) {
-      setTimeout(() => {
-        setSelectedRoom("Rooms");
-        setModalVisible(true);
-        setRoomFlag(false);
-      }, 100);
-    }
+    navigation.navigate(href);
   };
 
   const renderMenuOption = ({ item }) => (
@@ -215,58 +181,6 @@ const FlowerPot = () => {
             key={numColumns} // Provide a unique key based on numColumns
           />
         </View>
-
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={closeModal}
-        >
-          <TouchableWithoutFeedback onPress={closeModal}>
-            <View style={styles.modalOverlay}>
-              <TouchableWithoutFeedback>
-                <View style={styles.modalContainer}>
-                  <TouchableOpacity
-                    style={styles.closeButton}
-                    onPress={closeModal}
-                  >
-                    <Text style={styles.closeButtonText}>X</Text>
-                  </TouchableOpacity>
-                  <Text style={styles.popupSectionTitle}>
-                    Devices in {selectedRoom}
-                  </Text>
-                  {selectedRoom === "Rooms" ? (
-                    <View>
-                      <Text>{roomNames}</Text>
-                      {roomNames.map((roomName, index) => (
-                        <TouchableOpacity
-                          key={index}
-                          onPress={() => handleRoomNameClick(roomName)}
-                          style={styles.deviceContainer}
-                        >
-                          <Text style={styles.deviceText}>{roomName}</Text>
-                          <Text style={styles.deviceStatus}>
-                            {index + 1 * 2 + 1} devices
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                      <Text style={styles.deviceStatus}>
-                        Click the room to see device details.
-                      </Text>
-                    </View>
-                  ) : (
-                    devices.map((device, index) => (
-                      <View key={index} style={styles.deviceContainer}>
-                        <Text style={styles.deviceText}>{device.name}</Text>
-                        <Text style={styles.deviceStatus}>{device.status}</Text>
-                      </View>
-                    ))
-                  )}
-                </View>
-              </TouchableWithoutFeedback>
-            </View>
-          </TouchableWithoutFeedback>
-        </Modal>
       </View>
 
       {/* Modal for Current Usage */}
@@ -423,56 +337,6 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     marginTop: 10,
-  },
-
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
-  },
-  modalContainer: {
-    width: "80%",
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 20,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  closeButton: {
-    alignSelf: "flex-end",
-    padding: 10,
-  },
-  closeButtonText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  popupSectionTitle: {
-    fontSize: 25,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  deviceContainer: {
-    padding: 10,
-    backgroundColor: "#f9f9f9",
-    borderRadius: 5,
-    marginBottom: 10,
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  deviceText: {
-    fontSize: 16,
-    color: "#333",
-  },
-  deviceStatus: {
-    fontSize: 14,
-    color: "#666",
   },
 });
 

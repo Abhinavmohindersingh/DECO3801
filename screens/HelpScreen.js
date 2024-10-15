@@ -8,27 +8,14 @@ import {
 } from "react-native";
 import Background from "../components/Background";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import { useNavigation, useRoute } from "@react-navigation/native";
 
-const HelpScreen = () => {
-  const navigation = useNavigation();
-  const route = useRoute();
-  const { rooms, roomNames } = route.params;
-  const [updatedRooms, setUpdatedRooms] = useState(rooms);
-  const [updatedRoomNames, setUpdatedRoomNames] = useState(roomNames);
-
-  const handleBackPress = () => {
-    navigation.navigate("FlowerPot", {
-      rooms: updatedRooms,
-      roomNames: updatedRoomNames,
-    });
-  };
+const HelpScreen = ({ navigation }) => {
   return (
     <Background>
       <ScrollView contentContainerStyle={styles.container}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => handleBackPress()}
+          onPress={() => navigation.goBack()}
         >
           <Icon name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
