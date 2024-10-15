@@ -3,6 +3,7 @@ import axios from "axios";
 import {
   View,
   Text,
+  Modal,
   StyleSheet,
   Dimensions,
   ScrollView,
@@ -11,21 +12,28 @@ import {
 } from "react-native";
 import { LineChart, BarChart } from "react-native-chart-kit";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { Ionicons } from "@expo/vector-icons"; // Import Ionicons for information icon
 import Background from "../components/Background";
-
-var count = 0;
-
+import { useNavigation, useRoute } from "@react-navigation/native";
+const { height } = Dimensions.get("window");
 const EnergyUsage = ({ navigation }) => {
   const [energyUsage, setEnergyUsage] = useState(0);
+  const [showInfoModal, setShowInfoModal] = useState(false); // For information modal visibility
 
   const [chartDataWeekly, setChartDataWeekly] = useState({
     labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     datasets: [
       {
-        data: [20, 40, 60, 80, 40, 20, 100],
+        data: [20, 34, 31, 23, 20, 19, 27],
       },
     ],
   });
+
+  const handleInfoPress = (text) => {
+    setInfoText(text);
+    setShowInfoModal(true);
+  };
+  const [infoText, setInfoText] = useState(""); // To display different info text
 
   const [chartDataDaily, setChartDataDaily] = useState({
     labels: ["12AM", "3AM", "6AM", "9AM", "12PM", "3PM", "6PM", "9PM"],
@@ -40,7 +48,7 @@ const EnergyUsage = ({ navigation }) => {
     labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     datasets: [
       {
-        data: [30, 20, 50, 80, 45, 60, 90],
+        data: [20, 34, 31, 23, 20, 19, 27],
       },
     ],
   });
@@ -54,81 +62,8 @@ const EnergyUsage = ({ navigation }) => {
     ],
   });
 
-  const predictedCumsumArray = [2, 4, 6, 8, 4, 10];
-
-  useEffect(() => {
-    const dataIntervalId = setInterval(updateChartData, 3000);
-    const serverIntervalId = setInterval(sendDataToServer, 3000);
-
-    return () => {
-      clearInterval(dataIntervalId);
-      clearInterval(serverIntervalId);
-    };
-  }, []);
-
-  const sendDataToServer = async () => {
-    const predicted_cumsum =
-      predictedCumsumArray[count % predictedCumsumArray.length];
-    const data = {
-      timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-      predicted_cumsum: predicted_cumsum,
-    };
-
-    try {
-      await axios.post("http://34.40.131.213:4000/fake", data);
-      console.log("Data sent:", data);
-    } catch (error) {
-      console.error("Error sending data:", error);
-    }
-  };
-
-  const updateChartData = () => {
-    setChartDataWeekly((prevState) => {
-      const newData = [
-        ...prevState.datasets[0].data.slice(1),
-        predictedCumsumArray[count],
-      ];
-      setEnergyUsage(predictedCumsumArray[count]);
-      count = (count + 1) % predictedCumsumArray.length;
-
-      return {
-        labels: prevState.labels,
-        datasets: [{ data: newData }],
-      };
-    });
-
-    setChartDataDaily((prevState) => {
-      const newData = [
-        ...prevState.datasets[0].data.slice(1),
-        predictedCumsumArray[count],
-      ];
-      return {
-        labels: prevState.labels,
-        datasets: [{ data: newData }],
-      };
-    });
-
-    setBarChartDataWeekly((prevState) => {
-      const newData = [
-        ...prevState.datasets[0].data.slice(1),
-        predictedCumsumArray[count],
-      ];
-      return {
-        labels: prevState.labels,
-        datasets: [{ data: newData }],
-      };
-    });
-
-    setBarChartDataDaily((prevState) => {
-      const newData = [
-        ...prevState.datasets[0].data.slice(1),
-        predictedCumsumArray[count],
-      ];
-      return {
-        labels: prevState.labels,
-        datasets: [{ data: newData }],
-      };
-    });
+  const handleBackPress = () => {
+    navigation.navigate("FlowerPot");
   };
 
   return (
@@ -136,25 +71,41 @@ const EnergyUsage = ({ navigation }) => {
       {/* Back Button */}
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => navigation.goBack()} // Navigates to the previous screen
+        onPress={handleBackPress} // Navigate back to the FlowerPot screen with params
       >
         <Text style={styles.backButtonText}>←</Text>
       </TouchableOpacity>
-
       <TouchableWithoutFeedback>
         <ScrollView style={styles.container}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.energySubtext}>Predict Usage</Text>
+            <Text style={styles.energySubtext}></Text>
             <View style={styles.energyUsageRow}>
-              <Icon name="lightning-bolt" size={50} color="white" />
-              <Text style={styles.energyText}>: {energyUsage} kWh</Text>
+              {/* <Icon name="lightning-bolt" size={50} color="white" /> */}
+              {/* <Text style={styles.energyText}>: {energyUsage} </Text> */}
             </View>
           </View>
-
           {/* Weekly Energy Usage Section */}
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>Weekly Energy Usage</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Weekly Energy Usage</Text>
+              <TouchableOpacity
+                onPress={() =>
+                  handleInfoPress([
+                    "Enter the Number of Rooms and occuptants to each to help us understand your Home",
+                    "Please specify the number of rooms in your household.",
+                    "Please specify the number of occupants.",
+                  ])
+                }
+              >
+                <Ionicons
+                  name="information-circle-outline"
+                  size={20}
+                  color="white"
+                />
+              </TouchableOpacity>
+            </View>
+
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -173,25 +124,29 @@ const EnergyUsage = ({ navigation }) => {
                   style={styles.chartStyle}
                 />
               </View>
-
-              {/* Weekly Bar Chart */}
-              <View style={styles.chartContainer}>
-                <BarChart
-                  data={barChartDataWeekly}
-                  width={Dimensions.get("window").width - 40}
-                  height={200}
-                  yAxisLabel=""
-                  yAxisSuffix=" kWh"
-                  chartConfig={barChartConfig}
-                  style={styles.chartStyle}
-                />
-              </View>
             </ScrollView>
           </View>
-
           {/* Daily Energy Usage Section */}
+
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>Daily Energy Usage</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Daily Energy Usage</Text>
+              <TouchableOpacity
+                onPress={() =>
+                  handleInfoPress([
+                    "Enter the Number of Rooms and occuptants to each to help us understand your Home",
+                    "Please specify the number of rooms in your household.",
+                    "Please specify the number of occupants.",
+                  ])
+                }
+              >
+                <Ionicons
+                  name="information-circle-outline"
+                  size={20}
+                  color="white"
+                />
+              </TouchableOpacity>
+            </View>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -210,34 +165,43 @@ const EnergyUsage = ({ navigation }) => {
                   style={styles.chartStyle}
                 />
               </View>
-
-              {/* Daily Bar Chart */}
-              <View style={styles.chartContainer}>
-                <BarChart
-                  data={barChartDataDaily}
-                  width={Dimensions.get("window").width - 40}
-                  height={200}
-                  yAxisLabel=""
-                  yAxisSuffix=" kWh"
-                  chartConfig={barChartConfig}
-                  style={styles.chartStyle}
-                />
-              </View>
             </ScrollView>
           </View>
         </ScrollView>
       </TouchableWithoutFeedback>
 
-      {/* Footer with button to go back to the Flowerpot screen */}
-      {/* Optional: Remove this footer if the top back button suffices */}
-      {/* <View style={styles.footer}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("FlowerPot")}
-          style={styles.wideButton}
-        >
-          <Icon name="arrow-left" size={50} width={80} color="white" />
-        </TouchableOpacity>
-      </View> */}
+      <Modal
+        visible={showInfoModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowInfoModal(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowInfoModal(false)}>
+          <View style={styles.modalContainer}>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Information</Text>
+                {Array.isArray(infoText) ? (
+                  infoText.map((point, index) => (
+                    <View key={index} style={styles.bulletPointContainer}>
+                      <Text style={styles.bulletPoint}>•</Text>
+                      <Text style={styles.bulletText}>{point}</Text>
+                    </View>
+                  ))
+                ) : (
+                  <Text style={styles.modalItemText}>{infoText}</Text>
+                )}
+                <TouchableOpacity
+                  style={styles.saveButton}
+                  onPress={() => setShowInfoModal(false)}
+                >
+                  <Text style={styles.buttonText}>Close</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </Background>
   );
 };
@@ -301,6 +265,13 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     marginBottom: 10,
   },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "right",
+    justifyContent: "right", // Ensure the icon is close to the text
+    marginBottom: 0,
+  },
+  formSection: {},
   chartContainer: {
     paddingLeft: 20,
     paddingBottom: 20,
@@ -343,6 +314,54 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     textAlign: "center",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "#333",
+    borderRadius: 10,
+    padding: 20,
+    width: "80%",
+    maxHeight: height * 0.7,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#fff",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  modalItem: {
+    paddingVertical: 12,
+  },
+  modalItemText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+  bulletPointContainer: {
+    flexDirection: "row", // To align the bullet and text in one line
+    marginBottom: 5, // Space between each point
+  },
+  bulletPoint: {
+    fontSize: 20, // Bullet size
+    marginRight: 10, // Space between bullet and text
+    color: "#fff", // Bullet color
+  },
+  bulletText: {
+    fontSize: 16, // Text size
+    color: "#fff", // Text color
+  },
+  saveButton: {
+    backgroundColor: "#4CAF50",
+    paddingVertical: 12,
+    borderRadius: 25,
+    alignItems: "center",
+    marginTop: 15,
+    paddingHorizontal: 30,
   },
 });
 
