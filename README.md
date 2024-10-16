@@ -99,16 +99,9 @@ Before you begin, ensure you have met the following requirements:
 
 **Open your terminal and run the following commands to clone the repository and navigate to the project folder:**
 
-
-Copy code in terminal:
-
-_git clone https://github.com/Abhinavmohindersingh/DECO3801.git
-_
-_cd DECO3801
-_
-_cd winDash
-_
-Install Dependencies
+mkdir WinDash
+git clone https://github.com/Abhinavmohindersingh/DECO3801.git
+cd DECO3801
 
 **Once you're in the project directory, install the necessary dependencies:**
 
