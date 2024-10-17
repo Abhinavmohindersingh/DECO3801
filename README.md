@@ -97,23 +97,23 @@ Before you begin, ensure you have met the following requirements:
 
 ### Step-by-Step Installation
 
-Step 1: download node.js from https://nodejs.org/en/download/package-manager
-Step 2: download visual studio app
-Step 3: download the code base from github
+ - Step 1: download node.js from https://nodejs.org/en/download/package-manager
+ - Step 2: download visual studio app
+ - Step 3: download the code base from github
     click green "code" button and download ZIP file
-Step 4: unzip all
-Step 5: open the folder DECO3801 with visual studio code
-Step 6: open terminal in visual studio code
+ - Step 4: unzip all
+ - Step 5: open the folder DECO3801 with visual studio code
+ - Step 6: open terminal in visual studio code
 
-Step 7: run the following command in terminal 
-npm install -g yarn
-yarn add expo
-yarn expo start
+ - Step 7: run the following command in terminal 
+ - npm install -g yarn
+ - yarn add expo
+ - yarn expo start
 
 now a QR code should be generated
 
-Step 8: download `expo` app from your mobile device (android/ios)
-Step 9: open the app and click `Scan QR code` and scan the generated QR cdoe from `npm start`
+ - Step 8: download `expo` app from your mobile device (android/ios)
+ - Step 9: open the app and click `Scan QR code` and scan the generated QR cdoe from `npm start`
 
 Now the project will be built on your mobile device
 
