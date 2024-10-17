@@ -97,25 +97,25 @@ Before you begin, ensure you have met the following requirements:
 
 ### Step-by-Step Installation
 
-**Open your terminal and run the following commands to clone the repository and navigate to the project folder:**
+Step 1: download node.js from https://nodejs.org/en/download/package-manager
+Step 2: download visual studio app
+Step 3: download the code base from github
+    click green "code" button and download ZIP file
+Step 4: unzip all
+Step 5: open the folder DECO3801 with visual studio code
+Step 6: open terminal in visual studio code
 
-mkdir WinDash
-git clone https://github.com/Abhinavmohindersingh/DECO3801.git
-cd DECO3801
+Step 7: run the following command in terminal 
+npm install -g yarn
+yarn add expo
+yarn expo start
 
-**Once you're in the project directory, install the necessary dependencies:**
+now a QR code should be generated
 
+Step 8: download `expo` app from your mobile device (android/ios)
+Step 9: open the app and click `Scan QR code` and scan the generated QR cdoe from `npm start`
 
-_npm install
-_
-**Run the Application**
-
-To start the app in development mode, use the following command:
-
-_npm run start
-_
-This will open the development server for your Windash project, and you can proceed with testing or further development on your Android/iOS emulator or device.
-
+Now the project will be built on your mobile device
 
 ## Technology Stack
 
