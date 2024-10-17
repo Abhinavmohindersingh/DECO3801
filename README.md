@@ -106,14 +106,14 @@ Before you begin, ensure you have met the following requirements:
  - Step 6: open terminal in visual studio code
 
  - Step 7: run the following command in terminal 
- - npm install -g yarn
- - yarn add expo
- - yarn expo start
+ - `npm install -g yarn`
+ - `yarn add expo`
+ - `yarn expo start`
 
 now a QR code should be generated
 
  - Step 8: download `expo` app from your mobile device (android/ios)
- - Step 9: open the app and click `Scan QR code` and scan the generated QR cdoe from `npm start`
+ - Step 9: open the app and click `Scan QR code` and scan the generated QR cdoe from `yarn expo start`
 
 Now the project will be built on your mobile device
 
