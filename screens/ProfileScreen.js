@@ -60,7 +60,12 @@ const ProfileScreen = ({ navigation }) => {
       "Toaster",
     ],
     laundry: ["Washing Machine", "Dryer", "Iron", "Steam Press"],
-    garage: ["Electric Car Charger", "Power Tools", "Garage Door Opener"],
+    garage: [
+      "Car Battery Charger",
+      "Electric Vehicle Charger",
+      "Power Tools",
+      "Freezer",
+    ],
     livingroom: ["TV", "Gaming Console", "Sound System", "Air Conditioner"],
     general: ["Lights", "Smart Thermostat", "Security System", "Wi-Fi Router"],
   };
@@ -490,7 +495,7 @@ const styles = StyleSheet.create({
     width: "80%",
     fontWeight: "bold",
     color: "#fff",
-    marginBottom: 15,
+    marginBottom: 10,
     textTransform: "uppercase",
     letterSpacing: 1,
   },
@@ -535,7 +540,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 20,
+    marginTop: 5,
   },
   backButton: {
     backgroundColor: "#4CAF50",
@@ -590,6 +595,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#4CAF50",
     paddingVertical: 12,
     borderRadius: 25,
+    marginTop: 10,
     alignItems: "center",
     marginTop: 15,
     paddingHorizontal: 30,

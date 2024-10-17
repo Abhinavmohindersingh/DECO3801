@@ -1,5 +1,10 @@
-// LaundryUsage.js
-import React, { useState, useEffect, useContext, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  useMemo,
+  useCallback,
+} from "react";
 import {
   View,
   Text,
@@ -12,61 +17,78 @@ import {
   FlatList,
   Switch,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { BarChart } from "react-native-chart-kit";
 import { AppContext } from "../AppContext"; // Adjust the path as needed
 
 const LaundryUsage = ({ navigation }) => {
-  const { profileData, setProfileData } = useContext(AppContext);
+  const { profileData, setProfileData, setTotalConsumptionLaundry } =
+    useContext(AppContext);
   const selectedDevices = profileData.devices.laundry || [];
 
-  // All possible laundry devices with their properties
   const allDevices = [
     { name: "Washing Machine", icon: "washing-machine", consumption: 1.0 },
-    { name: "Dryer", icon: "tumble-dryer", consumption: 1.2 },
+    { name: "Dryer", icon: "tumble-dryer", consumption: 2.0 },
     { name: "Iron", icon: "iron", consumption: 0.8 },
     { name: "Steam Press", icon: "iron-outline", consumption: 0.7 },
-    { name: "Light", icon: "lightbulb-on-outline", consumption: 0.1 },
-    // Add any other devices as needed
+    { name: "Fabric Steamer", icon: "spray", consumption: 0.5 },
+    { name: "Light", icon: "lightbulb", consumption: 0.1 },
   ];
 
-  // State for modal visibility
   const [showAddDeviceModal, setShowAddDeviceModal] = useState(false);
-
-  // Memoize the devices array to prevent unnecessary re-renders
-  const devices = useMemo(
-    () => allDevices.filter((device) => selectedDevices.includes(device.name)),
-    [selectedDevices]
-  );
-
-  const [runningDevices, setRunningDevices] = useState(() => {
-    // Initialize runningDevices when the component mounts
-    const initialState = devices.reduce((acc, device) => {
-      acc[device.name] = true;
-      return acc;
-    }, {});
-    return initialState;
-  });
-
+  const [runningDevices, setRunningDevices] = useState({});
   const [totalConsumption, setTotalConsumption] = useState(0);
   const [chartData, setChartData] = useState({
     labels: [],
     datasets: [{ data: [] }],
   });
 
-  useEffect(() => {
-    // Update runningDevices when devices change
-    setRunningDevices((prevState) => {
-      const newRunningDevices = devices.reduce((acc, device) => {
-        acc[device.name] = prevState[device.name] ?? true;
-        return acc;
-      }, {});
-      return newRunningDevices;
-    });
+  const devices = useMemo(
+    () => allDevices.filter((device) => selectedDevices.includes(device.name)),
+    [selectedDevices]
+  );
+
+  const saveState = useCallback(async () => {
+    try {
+      await AsyncStorage.setItem(
+        "laundryRunningDevices",
+        JSON.stringify(runningDevices)
+      );
+    } catch (error) {
+      console.error("Error saving state:", error);
+    }
+  }, [runningDevices]);
+
+  const loadState = useCallback(async () => {
+    try {
+      const savedRunningDevices = await AsyncStorage.getItem(
+        "laundryRunningDevices"
+      );
+      if (savedRunningDevices !== null) {
+        setRunningDevices(JSON.parse(savedRunningDevices));
+      } else {
+        // Initialize state if no saved state exists
+        const initialState = devices.reduce((acc, device) => {
+          acc[device.name] = true;
+          return acc;
+        }, {});
+        setRunningDevices(initialState);
+      }
+    } catch (error) {
+      console.error("Error loading state:", error);
+    }
   }, [devices]);
 
   useEffect(() => {
-    // Calculate total consumption and update chart data
+    loadState();
+  }, [loadState]);
+
+  useEffect(() => {
+    saveState();
+  }, [runningDevices, saveState]);
+
+  useEffect(() => {
     let total = 0;
     const labels = [];
     const data = [];
@@ -82,48 +104,46 @@ const LaundryUsage = ({ navigation }) => {
 
     setTotalConsumption(total);
     setChartData({ labels, datasets: [{ data }] });
-  }, [runningDevices, devices]);
+    setTotalConsumptionLaundry(total);
+  }, [runningDevices, devices, setTotalConsumptionLaundry]);
 
-  // Toggle the status of a device (ON/OFF)
-  const toggleDevice = (deviceName) => {
+  const toggleDevice = useCallback((deviceName) => {
     setRunningDevices((prev) => ({
       ...prev,
       [deviceName]: !prev[deviceName],
     }));
+  }, []);
+
+  const handleAddDevice = () => {
+    setShowAddDeviceModal(true);
   };
 
-  // Chart configuration
+  const toggleDeviceSelection = useCallback(
+    (deviceName) => {
+      setProfileData((prevData) => {
+        const updatedDevices = { ...prevData.devices };
+        const deviceList = updatedDevices.laundry || [];
+
+        if (deviceList.includes(deviceName)) {
+          updatedDevices.laundry = deviceList.filter(
+            (name) => name !== deviceName
+          );
+        } else {
+          updatedDevices.laundry = [...deviceList, deviceName];
+        }
+
+        return { ...prevData, devices: updatedDevices };
+      });
+    },
+    [setProfileData]
+  );
+
   const chartConfig = {
     backgroundGradientFrom: "#ffffff",
     backgroundGradientTo: "#ffffff",
     color: (opacity = 1) => `rgba(31, 42, 68, ${opacity})`,
     strokeWidth: 2,
     barPercentage: 0.5,
-  };
-
-  // Handle adding devices
-  const handleAddDevice = () => {
-    setShowAddDeviceModal(true);
-  };
-
-  // Toggle device selection in modal
-  const toggleDeviceSelection = (deviceName) => {
-    setProfileData((prevData) => {
-      const updatedDevices = { ...prevData.devices };
-      const deviceList = updatedDevices.laundry || [];
-
-      if (deviceList.includes(deviceName)) {
-        // Remove device
-        updatedDevices.laundry = deviceList.filter(
-          (name) => name !== deviceName
-        );
-      } else {
-        // Add device
-        updatedDevices.laundry = [...deviceList, deviceName];
-      }
-
-      return { ...prevData, devices: updatedDevices };
-    });
   };
 
   return (
@@ -166,7 +186,6 @@ const LaundryUsage = ({ navigation }) => {
         )}
 
         <View style={styles.devicesContainer}>
-          {/* Existing devices */}
           {devices.map((device) => (
             <TouchableOpacity
               key={device.name}
@@ -193,18 +212,15 @@ const LaundryUsage = ({ navigation }) => {
             </TouchableOpacity>
           ))}
 
-          {/* Add device card */}
           <TouchableOpacity
             style={styles.addDeviceItem}
             onPress={handleAddDevice}
           >
-            <Icon name="plus" size={40} color="white" />
-            <Text style={styles.addDeviceText}>Add Device</Text>
+            <Icon name="plus" size={50} color="white" />
           </TouchableOpacity>
         </View>
       </ScrollView>
 
-      {/* Add Device Modal */}
       {showAddDeviceModal && (
         <Modal
           visible={showAddDeviceModal}
@@ -256,7 +272,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 40,
     left: 10,
-    backgroundColor: "rgba(0,0,0,0.5)", // Semi-transparent for better visibility
+    backgroundColor: "rgba(0,0,0,0.5)",
     padding: 10,
     borderRadius: 20,
     width: 50,
@@ -345,11 +361,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.3)",
     borderWidth: 2,
     borderColor: "#fff",
-  },
-  addDeviceText: {
-    fontSize: 16,
-    color: "white",
-    marginTop: 10,
   },
   modalContainer: {
     flex: 1,

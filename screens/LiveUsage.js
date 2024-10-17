@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -11,22 +11,53 @@ import {
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { BarChart } from "react-native-chart-kit";
 import { useNavigation } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AppContext } from "../AppContext";
 
-// Rooms data
-const rooms = [
-  { name: "Room1", icon: "bed", consumption: 1.5 },
-  { name: "Room2", icon: "bed-outline", consumption: 1.2 },
-  { name: "Kitchen", icon: "fridge", consumption: 2.1 },
-  { name: "Living", icon: "sofa", consumption: 1.8 },
-  { name: "Garage", icon: "garage", consumption: 0.9 },
-  { name: "Laundry", icon: "washing-machine", consumption: 1.7 }, // Added Laundry
-];
-
-const STORAGE_KEY = "@runningRoomsState"; // Key to store the state in AsyncStorage
+const STORAGE_KEY = "@runningRoomsState";
 
 const LiveUsage = () => {
   const navigation = useNavigation();
+  const {
+    consumptionHistory,
+    setConsumptionHistory,
+    saveConsumptionHistory,
+    // Existing context values
+    totalConsumptionKitchen,
+    totalConsumptionLiving,
+    totalConsumptionGarage,
+    totalConsumptionLaundry,
+  } = useContext(AppContext);
+
+  const rooms = [
+    { name: "Room", icon: "bed", consumption: 1.5 },
+    {
+      name: "Kitchen",
+      icon: "fridge",
+      consumption: totalConsumptionKitchen ?? 0,
+    },
+    {
+      name: "Living",
+      icon: "sofa",
+      consumption: totalConsumptionLiving
+        ? parseFloat(totalConsumptionLiving).toFixed(2)
+        : "0.00",
+    },
+    {
+      name: "Garage",
+      icon: "garage",
+      consumption: totalConsumptionGarage
+        ? parseFloat(totalConsumptionGarage).toFixed(2)
+        : "0.00",
+    },
+    {
+      name: "Laundry",
+      icon: "washing-machine",
+      consumption: totalConsumptionLaundry ?? 0,
+    },
+    { name: "Light", icon: "lightbulb-on-outline", consumption: 0.1 },
+  ];
+
   const [runningRooms, setRunningRooms] = useState({});
   const [totalConsumption, setTotalConsumption] = useState(0);
   const [chartData, setChartData] = useState({
@@ -34,7 +65,16 @@ const LiveUsage = () => {
     datasets: [{ data: [] }],
   });
 
-  // Save runningRooms state to AsyncStorage
+  // Functions to send data to the server (implement as needed)
+  const sendZone = async (ledStatus) => {
+    // Implement your server communication logic here
+  };
+
+  const sendTotalConsumptionToServer = async (total) => {
+    // Implement your server communication logic here
+  };
+
+  // Save running rooms state to AsyncStorage
   const saveRunningRoomsState = async (state) => {
     try {
       const jsonValue = JSON.stringify(state);
@@ -44,25 +84,27 @@ const LiveUsage = () => {
     }
   };
 
-  // Load runningRooms state from AsyncStorage
+  // Load running rooms state from AsyncStorage
   const loadRunningRoomsState = async () => {
     try {
       const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
       return jsonValue != null ? JSON.parse(jsonValue) : null;
     } catch (e) {
       console.error("Failed to load state.", e);
+      return null;
     }
   };
 
+  // Load initial running rooms state
   useEffect(() => {
     const loadInitialState = async () => {
       const savedState = await loadRunningRoomsState();
       if (savedState) {
         setRunningRooms(savedState);
       } else {
-        // If no saved state, simulate random rooms being active/inactive
+        // Initialize all rooms as OFF
         const initialState = rooms.reduce((acc, room) => {
-          acc[room.name] = Math.random() < 0.5;
+          acc[room.name] = false;
           return acc;
         }, {});
         setRunningRooms(initialState);
@@ -72,31 +114,62 @@ const LiveUsage = () => {
     loadInitialState();
   }, []);
 
+  // Update total consumption and chart data when runningRooms changes
   useEffect(() => {
-    // Calculate total consumption and update chart data
     let total = 0;
     const labels = [];
     const data = [];
+    const ledStatus = {};
 
     rooms.forEach((room) => {
       const isActive = runningRooms[room.name];
-      const consumption = isActive ? room.consumption : 0;
+      const consumption = isActive ? parseFloat(room.consumption) : 0;
       total += consumption;
 
       if (isActive) {
         labels.push(room.name);
         data.push(consumption);
       }
+
+      ledStatus[room.name] = isActive ? 1 : 0;
     });
 
     setTotalConsumption(total);
     setChartData({ labels, datasets: [{ data }] });
-
-    // Save the running rooms state after every change
     saveRunningRoomsState(runningRooms);
+
+    if (total > 0) {
+      sendTotalConsumptionToServer(total);
+      sendZone(ledStatus);
+    }
   }, [runningRooms]);
 
-  // Toggle the status of a room (ON/OFF)
+  // **Storing Total Consumption Every 5 Minutes**
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const currentConsumption = totalConsumption;
+
+      // Update history by appending the current consumption
+      const updatedHistory = [...consumptionHistory, currentConsumption];
+
+      // Ensure the history array has a maximum of 24 entries
+      if (updatedHistory.length > 24) {
+        updatedHistory.shift(); // Remove the oldest entry
+      }
+
+      // Update context state and persist it
+      setConsumptionHistory(updatedHistory);
+      saveConsumptionHistory(updatedHistory);
+    }, 1000); // 5 minutes in milliseconds
+
+    return () => clearInterval(interval); // Clean up on unmount
+  }, [
+    totalConsumption,
+    consumptionHistory,
+    setConsumptionHistory,
+    saveConsumptionHistory,
+  ]);
+
   const toggleRoom = (roomName) => {
     setRunningRooms((prev) => ({
       ...prev,
@@ -104,13 +177,17 @@ const LiveUsage = () => {
     }));
   };
 
-  // Chart configuration
   const chartConfig = {
     backgroundGradientFrom: "#ffffff",
     backgroundGradientTo: "#ffffff",
     color: (opacity = 1) => `rgba(31, 42, 68, ${opacity})`,
     strokeWidth: 2,
     barPercentage: 0.5,
+  };
+
+  // Function to get the current consumption of a room
+  const getCurrentConsumption = (room) => {
+    return runningRooms[room.name] ? parseFloat(room.consumption) : 0;
   };
 
   return (
@@ -129,7 +206,7 @@ const LiveUsage = () => {
         <Text style={styles.title}>Live Energy Usage</Text>
 
         <View style={styles.totalConsumption}>
-          <Icon name="lightning-bolt" size={40} color="#FFD700" />
+          <Icon name="flash-outline" size={40} color="#FFD700" />
           <Text style={styles.totalConsumptionText}>
             {totalConsumption.toFixed(2)} kWh/hr
           </Text>
@@ -160,8 +237,8 @@ const LiveUsage = () => {
                 styles.roomItem,
                 {
                   backgroundColor: runningRooms[room.name]
-                    ? "rgba(76, 175, 80, 0.7)"
-                    : "rgba(244, 67, 54, 0.7)",
+                    ? "rgba(76, 175, 80, 0.7)" // Green when ON
+                    : "rgba(244, 67, 54, 0.7)", // Red when OFF
                 },
               ]}
               onPress={() => toggleRoom(room.name)}
@@ -170,7 +247,7 @@ const LiveUsage = () => {
               <View style={styles.roomInfo}>
                 <Text style={styles.roomName}>{room.name}</Text>
                 <Text style={styles.roomConsumption}>
-                  {room.consumption} kWh/hr
+                  {getCurrentConsumption(room).toFixed(2)} kWh/hr
                 </Text>
               </View>
               <Text style={styles.roomStatus}>
@@ -211,10 +288,10 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    color: "#fff",
+    fontSize: 24, // Adjusted for better fit
+    fontWeight: "700",
+    color: "#FFD700",
+    marginBottom: 10,
     textAlign: "center",
   },
   totalConsumption: {

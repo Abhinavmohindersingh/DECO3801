@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useContext,
-  useMemo,
-  useCallback,
-} from "react";
+import React, { useState, useEffect, useContext, useMemo } from "react";
 import {
   View,
   Text,
@@ -17,78 +11,61 @@ import {
   FlatList,
   Switch,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { BarChart } from "react-native-chart-kit";
 import { AppContext } from "../AppContext"; // Adjust the path as needed
 
-const KitchenUsage = ({ navigation }) => {
-  const { profileData, setProfileData, setTotalConsumptionKitchen } =
-    useContext(AppContext);
-  const selectedDevices = profileData.devices.kitchen || [];
+const GarageUsage = ({ navigation }) => {
+  const { profileData, setProfileData, setTotalConsumptionGarage } =
+    useContext(AppContext); // Get setTotalConsumptionGarage from context
+  const selectedDevices = profileData.devices.garage || [];
 
+  // All possible garage devices with their properties
   const allDevices = [
-    { name: "Refrigerator", icon: "fridge", consumption: 0.8 },
-    { name: "Oven", icon: "stove", consumption: 1.5 },
-    { name: "Dishwasher", icon: "dishwasher", consumption: 1.2 },
-    { name: "Microwave", icon: "microwave", consumption: 1.0 },
-    { name: "Coffee Maker", icon: "coffee-maker", consumption: 0.5 },
-    { name: "Toaster", icon: "toaster", consumption: 0.3 },
+    { name: "Car Battery Charger", icon: "car-battery", consumption: 0.5 },
+    { name: "Power Tools", icon: "tools", consumption: 1.2 },
+    { name: "Electric Vehicle Charger", icon: "ev-station", consumption: 2.5 },
+    { name: "Freezer", icon: "fridge", consumption: 1.0 },
+    // Add any other garage-related devices as needed
   ];
 
+  // State for modal visibility
   const [showAddDeviceModal, setShowAddDeviceModal] = useState(false);
-  const [runningDevices, setRunningDevices] = useState({});
+
+  // Memoize the devices array to prevent unnecessary re-renders
+  const devices = useMemo(
+    () => allDevices.filter((device) => selectedDevices.includes(device.name)),
+    [selectedDevices]
+  );
+
+  const [runningDevices, setRunningDevices] = useState(() => {
+    // Initialize runningDevices when the component mounts
+    const initialState = devices.reduce((acc, device) => {
+      acc[device.name] = true;
+      return acc;
+    }, {});
+    return initialState;
+  });
+
   const [totalConsumption, setTotalConsumption] = useState(0);
   const [chartData, setChartData] = useState({
     labels: [],
     datasets: [{ data: [] }],
   });
 
-  const devices = useMemo(
-    () => allDevices.filter((device) => selectedDevices.includes(device.name)),
-    [selectedDevices]
-  );
-
-  const saveState = useCallback(async () => {
-    try {
-      await AsyncStorage.setItem(
-        "kitchenRunningDevices",
-        JSON.stringify(runningDevices)
-      );
-    } catch (error) {
-      console.error("Error saving state:", error);
-    }
-  }, [runningDevices]);
-
-  const loadState = useCallback(async () => {
-    try {
-      const savedRunningDevices = await AsyncStorage.getItem(
-        "kitchenRunningDevices"
-      );
-      if (savedRunningDevices !== null) {
-        setRunningDevices(JSON.parse(savedRunningDevices));
-      } else {
-        // Initialize state if no saved state exists
-        const initialState = devices.reduce((acc, device) => {
-          acc[device.name] = true;
-          return acc;
-        }, {});
-        setRunningDevices(initialState);
-      }
-    } catch (error) {
-      console.error("Error loading state:", error);
-    }
+  useEffect(() => {
+    // Update runningDevices when devices change
+    setRunningDevices((prevState) => {
+      const newRunningDevices = devices.reduce((acc, device) => {
+        acc[device.name] = prevState[device.name] ?? true;
+        return acc;
+      }, {});
+      return newRunningDevices;
+    });
   }, [devices]);
 
   useEffect(() => {
-    loadState();
-  }, [loadState]);
-
-  useEffect(() => {
-    saveState();
-  }, [runningDevices, saveState]);
-
-  useEffect(() => {
+    // Calculate total consumption and update chart data
     let total = 0;
     const labels = [];
     const data = [];
@@ -104,43 +81,45 @@ const KitchenUsage = ({ navigation }) => {
 
     setTotalConsumption(total);
     setChartData({ labels, datasets: [{ data }] });
-    setTotalConsumptionKitchen(total);
-  }, [runningDevices, devices, setTotalConsumptionKitchen]);
 
-  const toggleDevice = useCallback((deviceName) => {
-    setRunningDevices((prev) => {
-      const updated = {
-        ...prev,
-        [deviceName]: !prev[deviceName],
-      };
-      return updated;
-    });
-  }, []);
+    // Update the total garage consumption in the global context
+    setTotalConsumptionGarage(total); // Save the total consumption to be used globally
+  }, [runningDevices, devices]);
 
+  // Toggle the status of a device (ON/OFF)
+  const toggleDevice = (deviceName) => {
+    setRunningDevices((prev) => ({
+      ...prev,
+      [deviceName]: !prev[deviceName],
+    }));
+  };
+
+  // Handle adding devices
   const handleAddDevice = () => {
     setShowAddDeviceModal(true);
   };
 
-  const toggleDeviceSelection = useCallback(
-    (deviceName) => {
-      setProfileData((prevData) => {
-        const updatedDevices = { ...prevData.devices };
-        const deviceList = updatedDevices.kitchen || [];
+  // Toggle device selection in modal
+  const toggleDeviceSelection = (deviceName) => {
+    setProfileData((prevData) => {
+      const updatedDevices = { ...prevData.devices };
+      const deviceList = updatedDevices.garage || [];
 
-        if (deviceList.includes(deviceName)) {
-          updatedDevices.kitchen = deviceList.filter(
-            (name) => name !== deviceName
-          );
-        } else {
-          updatedDevices.kitchen = [...deviceList, deviceName];
-        }
+      if (deviceList.includes(deviceName)) {
+        // Remove device
+        updatedDevices.garage = deviceList.filter(
+          (name) => name !== deviceName
+        );
+      } else {
+        // Add device
+        updatedDevices.garage = [...deviceList, deviceName];
+      }
 
-        return { ...prevData, devices: updatedDevices };
-      });
-    },
-    [setProfileData]
-  );
+      return { ...prevData, devices: updatedDevices };
+    });
+  };
 
+  // Chart configuration
   const chartConfig = {
     backgroundGradientFrom: "#ffffff",
     backgroundGradientTo: "#ffffff",
@@ -162,7 +141,7 @@ const KitchenUsage = ({ navigation }) => {
       </TouchableOpacity>
 
       <ScrollView style={styles.container}>
-        <Text style={styles.title}>Kitchen Usage</Text>
+        <Text style={styles.title}>Garage Usage</Text>
 
         <View style={styles.totalConsumption}>
           <Icon name="lightning-bolt" size={40} color="#FFD700" />
@@ -189,6 +168,7 @@ const KitchenUsage = ({ navigation }) => {
         )}
 
         <View style={styles.devicesContainer}>
+          {/* Existing devices */}
           {devices.map((device) => (
             <TouchableOpacity
               key={device.name}
@@ -215,6 +195,7 @@ const KitchenUsage = ({ navigation }) => {
             </TouchableOpacity>
           ))}
 
+          {/* Add device card */}
           <TouchableOpacity
             style={styles.addDeviceItem}
             onPress={handleAddDevice}
@@ -224,6 +205,7 @@ const KitchenUsage = ({ navigation }) => {
         </View>
       </ScrollView>
 
+      {/* Add Device Modal */}
       {showAddDeviceModal && (
         <Modal
           visible={showAddDeviceModal}
@@ -413,4 +395,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default KitchenUsage;
+export default GarageUsage;

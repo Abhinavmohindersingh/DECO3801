@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -26,19 +26,16 @@ import { ModelBad } from "../components/ModelBad";
 import { ModelNeutral } from "../components/ModelNeutral";
 
 const menuOptions = [
-  { name: "PredictViz", iconName: "chart-line", href: "EnergyUsage" },
+  { name: "PredictViz", iconName: "chart-line", href: "PredictViz" },
+  { name: "Live", iconName: "chart-bar", href: "LiveUsage" },
+
+  {
+    name: "Elec. Spent",
+    iconName: "electron",
+    href: "ElecSpendingScreen",
+  },
   { name: "Spendings", iconName: "currency-usd", href: "SpendingScreen" },
-  {
-    name: "Energy Usage",
-    iconName: "trending-up",
-    href: "EstimatedBillScreen",
-  },
-  {
-    name: "Live",
-    iconName: "chart-bar",
-    href: "LiveUsage",
-  },
-  { name: "Info", iconName: "information", href: "InfoScreen" },
+  { name: "Limit", iconName: "cash-multiple", href: "EnergyLimit" },
   { name: "Settings", iconName: "cogs", href: "SettingsScreen" },
 ];
 
@@ -46,15 +43,53 @@ const FlowerPot = () => {
   const navigation = useNavigation(); // Initialize navigation
   const [numColumns, setNumColumns] = useState(2); // Default to
   const route = useRoute(); // Now using the useRoute hook to access route parameters
+  const { totalConsumption = 0 } = route.params || {};
+  const [threshold, setThreshold] = useState(0); // State for threshold from the server
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentUsage, setCurrentUsage] = useState(8); // Example usage value
+
+  // Function to fetch the threshold value from the server
+  useEffect(() => {
+    const fetchThreshold = async () => {
+      try {
+        const response = await fetch("http://34.87.202.191:4000/pi");
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Got the full data:", data);
+
+        // Calculate the threshold as 2 * recent / (1.5 * average)
+        if (data && data.recent !== undefined && data.average !== undefined) {
+          const calculatedThreshold = (2 * data.recent) / (1.5 * data.average);
+          setThreshold(calculatedThreshold);
+          console.log("Calculated threshold:", calculatedThreshold);
+        } else {
+          console.log(
+            "Recent or average value not found in the response",
+            data
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    // Fetch data immediately and then every 5 seconds
+    fetchThreshold();
+    const intervalId = setInterval(fetchThreshold, 1000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
   const handleFlashPress = () => {
     setModalVisible(true);
   };
+
   const handleMenuItemClick = (href) => {
-    // Navigate to the desired screen
     navigation.navigate(href);
   };
-
-  const { totalConsumption = 0 } = route.params || {};
 
   const renderMenuOption = ({ item }) => (
     <TouchableOpacity
@@ -66,15 +101,11 @@ const FlowerPot = () => {
     </TouchableOpacity>
   );
 
-  // State for Modal
-  const [modalVisible, setModalVisible] = useState(false);
-  const [currentUsage, setCurrentUsage] = useState(8); // Example usage value
-
-  // Function to return the correct flower pot model based on usage
+  // Function to return the correct flower pot model based on the threshold value
   const getFlowerPotModel = () => {
-    if (totalConsumption < 5) {
+    if (threshold > 0 && threshold < 0.75) {
       return <Model position={[0, -1, 0]} />;
-    } else if (totalConsumption >= 5 && totalConsumption < 8) {
+    } else if (threshold >= 0.74 && threshold < 1.4) {
       return <ModelNeutral position={[0, -1, 0]} />;
     } else {
       return <ModelBad position={[0, -1, 0]} />;
@@ -95,17 +126,14 @@ const FlowerPot = () => {
               justifyContent: "space-around",
             }}
           >
-            {/* Flash Icon with TouchableOpacity */}
             <TouchableOpacity
               onPress={handleFlashPress}
               style={styles.iconContainer}
             >
-              <Icon name="flash-outline" size={50} color="yellow" />
+              <Icon name="flash-outline" size={50} color="#FFD700" />
             </TouchableOpacity>
 
-            <Text style={{ color: "white", fontSize: 30 }}>
-              {totalConsumption.toFixed(2)} kWh
-            </Text>
+            <Text style={{ color: "#FFD700", fontSize: 30 }}>Track Usage</Text>
           </View>
 
           <TouchableOpacity
@@ -130,7 +158,7 @@ const FlowerPot = () => {
             <PerspectiveCamera makeDefault position={[0, 5, 9]} />
             <OrbitControls />
 
-            {/* Dynamically render the correct flower pot model based on usage */}
+            {/* Dynamically render the correct flower pot model based on the threshold */}
             {getFlowerPotModel()}
 
             <ContactShadows
@@ -177,6 +205,14 @@ const FlowerPot = () => {
             </View>
             <View style={styles.iconWrapper}>
               <TouchableOpacity
+                onPress={() => navigation.navigate("GarageUsage")}
+              >
+                <Icon name="car" size={40} color="#fff" />
+              </TouchableOpacity>
+              <Text style={styles.iconLabel}>Garage</Text>
+            </View>
+            <View style={styles.iconWrapper}>
+              <TouchableOpacity
                 onPress={() => navigation.navigate("LaundryUsage")}
               >
                 <MaterialCommunityIcons
@@ -196,14 +232,13 @@ const FlowerPot = () => {
             showsVerticalScrollIndicator={false}
             renderItem={renderMenuOption}
             keyExtractor={(item) => item.name}
-            numColumns={numColumns} // Use the numColumns state
+            numColumns={numColumns}
             ListHeaderComponent={<Text style={styles.menuTitle}></Text>}
             key={numColumns}
           />
         </View>
       </View>
 
-      {/* Modal for Current Usage */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -218,8 +253,7 @@ const FlowerPot = () => {
           <View style={styles.modalView}>
             <Text style={styles.modalTitle}>Current Energy Usage</Text>
             <Text style={styles.modalDescription}>
-              Your current energy usage is {currentUsage} kWh. This reflects the
-              total energy consumed by your household appliances today.
+              Your current energy usage is {currentUsage} kWh.
             </Text>
             <TouchableOpacity
               style={styles.modalCloseButton}
@@ -235,50 +269,68 @@ const FlowerPot = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  background: {
-    flex: 1,
-  },
-  energy: {
-    height: 20,
-    weight: 10,
-    color: "white",
-  },
+  container: { flex: 1 },
+  background: { flex: 1 },
   header: {
     position: "absolute",
     top: 30,
     left: 20,
     right: 20,
     alignItems: "center",
-    marginTop: 20,
     flexDirection: "row",
     zIndex: 1,
     justifyContent: "space-between",
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#fff",
-  },
   canvasContainer: {
     flex: 1,
-
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     height: "70%",
+
     bottom: 0,
     zIndex: 0,
-    marginTop: 0,
     overflow: "hidden",
   },
+  roomIcons: {
+    position: "absolute",
+    borderWidth: 2,
+    borderColor: "#fff",
+
+    top: 400,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    backgroundColor: "rgba(119, 119, 119, 0.7)",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    marginHorizontal: 20,
+  },
+  iconWrapper: { alignItems: "center" },
+  iconLabel: { color: "white", fontSize: 12, marginTop: 5 },
+  menuContainer: {
+    position: "absolute",
+    top: 490,
+    left: 20,
+    right: 20,
+    zIndex: 3,
+  },
+  menuItem: {
+    flex: 1,
+    flexDirection: "column",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: "#fff",
+    backgroundColor: "rgba(119, 119, 119, 0.7)",
+    marginHorizontal: 10,
+    marginVertical: 10,
+    borderRadius: 20,
+  },
+  menuLabel: { color: "white", fontSize: 16, marginTop: 10 },
   modalOverlay: {
     postion: "absolute",
     top: 80,
@@ -289,75 +341,18 @@ const styles = StyleSheet.create({
   modalView: {
     width: Dimensions.get("window").width - 100,
     backgroundColor: "rgba(119, 119, 119, 0.7)",
-    color: "white",
-    fontWeight: 15,
     borderRadius: 20,
     padding: 5,
     alignItems: "left",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
   },
-  roomIcons: {
-    position: "absolute",
-    borderWidth: 2,
-    borderColor: "white",
-    top: 400,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "space-evenly",
-    zIndex: 2,
-    backgroundColor: "rgba(119, 119, 119, 0.7)", // 0.7 is the transparency factor
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    marginHorizontal: 20,
-    alignItems: "center",
-    justifyContent: "space-evenly",
-  },
-  iconWrapper: {
-    alignItems: "center",
-  },
-  iconLabel: {
-    color: "white",
-    fontSize: 12,
-    marginTop: 5,
-  },
-  menuContainer: {
-    position: "absolute",
-    top: 490,
-    left: 20,
-    right: 20,
-    zIndex: 3,
-  },
-  menuTitle: {
-    fontSize: 18,
-    color: "white",
-    marginBottom: 10,
-  },
-  menuItem: {
-    flex: 1,
-    flexDirection: "column",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderWidth: 2,
-    borderColor: "#fff",
-    backgroundColor: "rgba(119, 119, 119, 0.7)", // 0.7 is the transparency factor
-    marginHorizontal: 10,
-    marginVertical: 10,
-    borderRadius: 20,
-  },
-  menuLabel: {
-    color: "white",
-    fontSize: 16,
+  modalTitle: { fontSize: 18, color: "#fff", marginBottom: 10 },
+  modalCloseButton: {
+    padding: 10,
+    backgroundColor: "#fff",
+    borderRadius: 10,
     marginTop: 10,
   },
+  modalCloseButtonText: { color: "#000" },
 });
 
 export default FlowerPot;

@@ -28,6 +28,7 @@ const EnergyLimit = ({ navigation }) => {
       try {
         const savedLimit = await AsyncStorage.getItem("energyLimit");
         const savedCycle = await AsyncStorage.getItem("billCycle");
+
         if (savedLimit !== null) {
           setStoredLimit(savedLimit);
           setEnergyLimit(savedLimit);
@@ -169,8 +170,6 @@ const EnergyLimit = ({ navigation }) => {
               </TouchableOpacity>
 
               {tipVisible && renderEnergyTip()}
-
-              {/* Next Button to navigate to FlowerPot */}
             </View>
           </ScrollView>
         </KeyboardAvoidingView>

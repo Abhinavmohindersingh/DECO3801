@@ -1,5 +1,10 @@
-// LivingUsage.js
-import React, { useState, useEffect, useContext, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  useMemo,
+  useCallback,
+} from "react";
 import {
   View,
   Text,
@@ -12,16 +17,17 @@ import {
   Switch,
   ImageBackground,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { BarChart } from "react-native-chart-kit";
 import { AppContext } from "../AppContext"; // Adjust the path as needed
 
 const LivingUsage = ({ navigation }) => {
-  const { profileData, setProfileData } = useContext(AppContext);
+  const { profileData, setProfileData, setTotalConsumptionLiving } =
+    useContext(AppContext);
   const selectedDevices = profileData.devices.livingroom || [];
   const [showAddDeviceModal, setShowAddDeviceModal] = useState(false);
 
-  // All possible living room devices with their properties
   const allDevices = [
     { name: "TV", icon: "television", consumption: 0.4 },
     { name: "Lamp", icon: "lamp", consumption: 0.1 },
@@ -29,46 +35,60 @@ const LivingUsage = ({ navigation }) => {
     { name: "Sound System", icon: "speaker", consumption: 0.3 },
     { name: "Air Conditioner", icon: "air-conditioner", consumption: 1.8 },
     { name: "Light", icon: "lightbulb-on-outline", consumption: 0.1 },
-    // Add any other devices as needed
   ];
 
-  // Memoize the devices array to prevent unnecessary re-renders
   const devices = useMemo(
     () => allDevices.filter((device) => selectedDevices.includes(device.name)),
     [selectedDevices]
   );
-  const handleAddDevice = () => {
-    setShowAddDeviceModal(true);
-  };
 
-  const [runningDevices, setRunningDevices] = useState(() => {
-    // Initialize runningDevices when the component mounts
-    const initialState = devices.reduce((acc, device) => {
-      acc[device.name] = true;
-      return acc;
-    }, {});
-    return initialState;
-  });
-
+  const [runningDevices, setRunningDevices] = useState({});
   const [totalConsumption, setTotalConsumption] = useState(0);
   const [chartData, setChartData] = useState({
     labels: [],
     datasets: [{ data: [] }],
   });
 
-  useEffect(() => {
-    // Update runningDevices when devices change
-    setRunningDevices((prevState) => {
-      const newRunningDevices = devices.reduce((acc, device) => {
-        acc[device.name] = prevState[device.name] ?? true;
-        return acc;
-      }, {});
-      return newRunningDevices;
-    });
+  const saveState = useCallback(async () => {
+    try {
+      await AsyncStorage.setItem(
+        "livingRunningDevices",
+        JSON.stringify(runningDevices)
+      );
+    } catch (error) {
+      console.error("Error saving state:", error);
+    }
+  }, [runningDevices]);
+
+  const loadState = useCallback(async () => {
+    try {
+      const savedRunningDevices = await AsyncStorage.getItem(
+        "livingRunningDevices"
+      );
+      if (savedRunningDevices !== null) {
+        setRunningDevices(JSON.parse(savedRunningDevices));
+      } else {
+        // Initialize state if no saved state exists
+        const initialState = devices.reduce((acc, device) => {
+          acc[device.name] = true;
+          return acc;
+        }, {});
+        setRunningDevices(initialState);
+      }
+    } catch (error) {
+      console.error("Error loading state:", error);
+    }
   }, [devices]);
 
   useEffect(() => {
-    // Calculate total consumption and update chart data
+    loadState();
+  }, [loadState]);
+
+  useEffect(() => {
+    saveState();
+  }, [runningDevices, saveState]);
+
+  useEffect(() => {
     let total = 0;
     const labels = [];
     const data = [];
@@ -84,34 +104,43 @@ const LivingUsage = ({ navigation }) => {
 
     setTotalConsumption(total);
     setChartData({ labels, datasets: [{ data }] });
-  }, [runningDevices, devices]);
+    setTotalConsumptionLiving(total);
+  }, [runningDevices, devices, setTotalConsumptionLiving]);
 
-  // Toggle the status of a device (ON/OFF)
-  const toggleDevice = (deviceName) => {
-    setRunningDevices((prev) => ({
-      ...prev,
-      [deviceName]: !prev[deviceName],
-    }));
-  };
-  const toggleDeviceSelection = (deviceName) => {
-    setProfileData((prevData) => {
-      const updatedDevices = { ...prevData.devices };
-      const deviceList = updatedDevices.livingroom || [];
-
-      if (deviceList.includes(deviceName)) {
-        // Remove device
-        updatedDevices.livingroom = deviceList.filter(
-          (name) => name !== deviceName
-        );
-      } else {
-        // Add device
-        updatedDevices.livingroom = [...deviceList, deviceName];
-      }
-
-      return { ...prevData, devices: updatedDevices };
+  const toggleDevice = useCallback((deviceName) => {
+    setRunningDevices((prev) => {
+      const updated = {
+        ...prev,
+        [deviceName]: !prev[deviceName],
+      };
+      return updated;
     });
+  }, []);
+
+  const handleAddDevice = () => {
+    setShowAddDeviceModal(true);
   };
-  // Chart configuration
+
+  const toggleDeviceSelection = useCallback(
+    (deviceName) => {
+      setProfileData((prevData) => {
+        const updatedDevices = { ...prevData.devices };
+        const deviceList = updatedDevices.livingroom || [];
+
+        if (deviceList.includes(deviceName)) {
+          updatedDevices.livingroom = deviceList.filter(
+            (name) => name !== deviceName
+          );
+        } else {
+          updatedDevices.livingroom = [...deviceList, deviceName];
+        }
+
+        return { ...prevData, devices: updatedDevices };
+      });
+    },
+    [setProfileData]
+  );
+
   const chartConfig = {
     backgroundGradientFrom: "#ffffff",
     backgroundGradientTo: "#ffffff",
@@ -193,6 +222,7 @@ const LivingUsage = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
       {showAddDeviceModal && (
         <Modal
           visible={showAddDeviceModal}

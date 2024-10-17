@@ -2,7 +2,7 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import EnergyUsage from "./screens/EnergyUsage"; // Update path as needed
+import PredictViz from "./screens/PredictViz"; // Update path as needed
 import SettingsScreen from "./screens/SettingsScreen"; // Create this screen
 import LoginScreen from "./screens/LoginScreen";
 import ProfileScreen from "./screens/ProfileScreen";
@@ -21,6 +21,9 @@ import RoomsUsage from "./screens/RoomsUsage";
 import { AppProvider } from "./AppContext";
 import RoomDetailsScreen from "./screens/RoomDetailsScreen";
 import EnergyLimit from "./screens/EnergyLimit";
+import FlowerOne from "./screens/FlowerOne";
+import GarageUsage from "./screens/GarageUsage";
+import ElecSpendingScreen from "./screens/ElecSpendingScreen";
 
 const Stack = createStackNavigator();
 
@@ -30,13 +33,14 @@ const App = () => {
     <AppProvider>
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+          {/* <Stack.Screen name="FlowerOne" component={FlowerOne} /> */}
 
-          <Stack.Screen name="EnergyLimit" component={EnergyLimit} />
+          {/* <Stack.Screen name="ProfileScreen" component={ProfileScreen} /> */}
+
+          {/* <Stack.Screen name="EnergyLimit" component={EnergyLimit} /> */}
+          <Stack.Screen name="FlowerPot" component={FlowerPot} />
 
           <Stack.Screen name="AccountScreen" component={AccountScreen} />
-
-          <Stack.Screen name="FlowerPot" component={FlowerPot} />
 
           <Stack.Screen name="LivingUsage" component={LivingUsage} />
           <Stack.Screen name="RoomsUsage" component={RoomsUsage} />
@@ -44,11 +48,17 @@ const App = () => {
             name="RoomDetailsScreen"
             component={RoomDetailsScreen}
           />
+          <Stack.Screen name="GarageUsage" component={GarageUsage} />
+          <Stack.Screen name="EnergyLimit" component={EnergyLimit} />
+          <Stack.Screen
+            name="ElecSpendingScreen"
+            component={ElecSpendingScreen}
+          />
 
           <Stack.Screen name="LaundryUsage" component={LaundryUsage} />
           <Stack.Screen name="LiveUsage" component={LiveUsage} />
           <Stack.Screen name="KitchenUsage" component={KitchenUsage} />
-          <Stack.Screen name="EnergyUsage" component={EnergyUsage} />
+          <Stack.Screen name="PredictViz" component={PredictViz} />
           <Stack.Screen name="SpendingScreen" component={SpendingScreen} />
           <Stack.Screen name="InfoScreen" component={InfoScreen} />
           <Stack.Screen name="SettingsScreen" component={SettingsScreen} />

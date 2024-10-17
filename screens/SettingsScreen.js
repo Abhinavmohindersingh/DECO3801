@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
+  Alert,
 } from "react-native";
 
 import Background from "../components/Background";
@@ -18,6 +19,16 @@ const SettingsScreen = ({ navigation }) => {
   const [personalInfoVisible, setPersonalInfoVisible] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+
+  const handleSavePersonalInfo = () => {
+    if (name === "" || email === "") {
+      Alert.alert("Error", "Please fill in both fields.");
+    } else {
+      // Save logic for personal information
+      Alert.alert("Success", "Your personal details have been updated!");
+      setPersonalInfoVisible(false);
+    }
+  };
 
   return (
     <Background>
@@ -34,10 +45,7 @@ const SettingsScreen = ({ navigation }) => {
         <ScrollView>
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>General</Text>
-            <View style={styles.row}>
-              <Text style={styles.text}>Dark Mode</Text>
-              <Switch value={darkMode} onValueChange={setDarkMode} />
-            </View>
+            <View style={styles.row}></View>
             <View style={styles.row}>
               <Text style={styles.text}>Notifications</Text>
               <Switch
@@ -127,10 +135,7 @@ const SettingsScreen = ({ navigation }) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.button, styles.buttonSave]}
-                onPress={() => {
-                  // Save personal info logic here
-                  setPersonalInfoVisible(false);
-                }}
+                onPress={handleSavePersonalInfo}
               >
                 <Text style={styles.buttonText}>Save</Text>
               </TouchableOpacity>
@@ -271,18 +276,13 @@ const styles = StyleSheet.create({
   backButton: {
     position: "absolute",
     top: 40, // Adjust based on your layout
-    left: 10, // Adjust based on your layout
-    backgroundColor: "rgba(0,0,0,0.5)", // Semi-transparent for better visibility
-    padding: 10,
-    borderRadius: 20,
-    width: 50,
+    left: 20,
     zIndex: 1,
+    padding: 10,
   },
   backButtonText: {
     color: "white",
-    fontSize: 20,
-    fontWeight: "bold",
-    textAlign: "center",
+    fontSize: 30,
   },
 });
 
