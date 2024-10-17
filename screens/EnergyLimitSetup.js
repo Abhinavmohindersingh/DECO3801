@@ -17,7 +17,7 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import Background from "../components/Background";
 import { AppContext } from "../AppContext"; // Import AppContext to access profileData
 
-const EnergyLimit = ({ navigation }) => {
+const EnergyLimitSetup = ({ navigation }) => {
   const [energyLimit, setEnergyLimit] = useState("");
   const [storedLimit, setStoredLimit] = useState(null);
   const [billingCycle, setBillingCycle] = useState("");
@@ -117,6 +117,13 @@ const EnergyLimit = ({ navigation }) => {
           style={styles.container}
         >
           <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
+            >
+              <FontAwesome5 name="arrow-left" size={24} color="#FFF" />
+            </TouchableOpacity>
+
             <View style={styles.contentContainer}>
               <Text style={styles.title}>Set Your Energy Budget</Text>
 
@@ -336,4 +343,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default EnergyLimit;
+export default EnergyLimitSetup;

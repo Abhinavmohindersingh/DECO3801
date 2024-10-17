@@ -11,9 +11,12 @@ import {
   FlatList,
   Switch,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { BarChart } from "react-native-chart-kit";
 import { AppContext } from "../AppContext"; // Adjust the path as needed
+
+const STORAGE_KEY = "@runningDevicesGarage"; // Unique key for garage devices
 
 const GarageUsage = ({ navigation }) => {
   const { profileData, setProfileData, setTotalConsumptionGarage } =
@@ -22,14 +25,11 @@ const GarageUsage = ({ navigation }) => {
 
   // All possible garage devices with their properties
   const allDevices = [
-    { name: "Car Battery Charger", icon: "car-battery", consumption: 0.5 },
+    { name: " Battery ", icon: "car-battery", consumption: 0.5 },
     { name: "Power Tools", icon: "tools", consumption: 1.2 },
-    { name: "Electric Vehicle Charger", icon: "ev-station", consumption: 2.5 },
-    { name: "Freezer", icon: "fridge", consumption: 1.0 },
-    // Add any other garage-related devices as needed
+    { name: "EV Charger", icon: "ev-station", consumption: 2.5 },
   ];
 
-  // State for modal visibility
   const [showAddDeviceModal, setShowAddDeviceModal] = useState(false);
 
   // Memoize the devices array to prevent unnecessary re-renders
@@ -38,31 +38,50 @@ const GarageUsage = ({ navigation }) => {
     [selectedDevices]
   );
 
-  const [runningDevices, setRunningDevices] = useState(() => {
-    // Initialize runningDevices when the component mounts
-    const initialState = devices.reduce((acc, device) => {
-      acc[device.name] = true;
-      return acc;
-    }, {});
-    return initialState;
-  });
-
+  const [runningDevices, setRunningDevices] = useState({}); // Initialize as an empty object
   const [totalConsumption, setTotalConsumption] = useState(0);
   const [chartData, setChartData] = useState({
     labels: [],
     datasets: [{ data: [] }],
   });
 
+  // Load the state from AsyncStorage when the component mounts
   useEffect(() => {
-    // Update runningDevices when devices change
-    setRunningDevices((prevState) => {
-      const newRunningDevices = devices.reduce((acc, device) => {
-        acc[device.name] = prevState[device.name] ?? true;
-        return acc;
-      }, {});
-      return newRunningDevices;
-    });
+    const loadState = async () => {
+      try {
+        const savedState = await AsyncStorage.getItem(STORAGE_KEY);
+        if (savedState) {
+          setRunningDevices(JSON.parse(savedState)); // Load saved state
+        } else {
+          // Initialize state if no saved state exists
+          const initialState = devices.reduce((acc, device) => {
+            acc[device.name] = true;
+            return acc;
+          }, {});
+          setRunningDevices(initialState);
+        }
+      } catch (error) {
+        console.error("Error loading state from AsyncStorage:", error);
+      }
+    };
+
+    loadState();
   }, [devices]);
+
+  // Save the state to AsyncStorage whenever it changes
+  useEffect(() => {
+    const saveState = async () => {
+      try {
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(runningDevices));
+      } catch (error) {
+        console.error("Error saving state to AsyncStorage:", error);
+      }
+    };
+
+    if (Object.keys(runningDevices).length > 0) {
+      saveState();
+    }
+  }, [runningDevices]);
 
   useEffect(() => {
     // Calculate total consumption and update chart data
@@ -83,7 +102,7 @@ const GarageUsage = ({ navigation }) => {
     setChartData({ labels, datasets: [{ data }] });
 
     // Update the total garage consumption in the global context
-    setTotalConsumptionGarage(total); // Save the total consumption to be used globally
+    setTotalConsumptionGarage(total);
   }, [runningDevices, devices]);
 
   // Toggle the status of a device (ON/OFF)
@@ -123,9 +142,15 @@ const GarageUsage = ({ navigation }) => {
   const chartConfig = {
     backgroundGradientFrom: "#ffffff",
     backgroundGradientTo: "#ffffff",
-    color: (opacity = 1) => `rgba(31, 42, 68, ${opacity})`,
-    strokeWidth: 2,
-    barPercentage: 0.5,
+    color: (opacity = 1, index) => {
+      // Assuming chartData.datasets[0].data[index] gives the value for that bar
+      const dataValue = chartData.datasets[0].data[index];
+      return dataValue > 2
+        ? `rgba(255, 215, 0, ${opacity})` // Yellowish color for values > 2 kWh
+        : `rgba(31, 42, 68, ${opacity})`; // Default color for values <= 2 kWh
+    },
+    strokeWidth: 8,
+    barPercentage: 0.9,
   };
 
   return (
@@ -168,16 +193,13 @@ const GarageUsage = ({ navigation }) => {
         )}
 
         <View style={styles.devicesContainer}>
-          {/* Existing devices */}
           {devices.map((device) => (
             <TouchableOpacity
               key={device.name}
               style={[
                 styles.deviceItem,
                 {
-                  backgroundColor: runningDevices[device.name]
-                    ? "rgba(76, 175, 80, 0.7)"
-                    : "rgba(244, 67, 54, 0.7)",
+                  backgroundColor: "rgba(76, 175, 80, 0.4)", // Constant background color
                 },
               ]}
               onPress={() => toggleDevice(device.name)}
@@ -189,20 +211,30 @@ const GarageUsage = ({ navigation }) => {
                   {device.consumption} kWh/hr
                 </Text>
               </View>
-              <Text style={styles.deviceStatus}>
-                {runningDevices[device.name] ? "ON" : "OFF"}
-              </Text>
+              <View style={styles.deviceStatusContainer}>
+                <Text style={styles.deviceStatus}>
+                  {runningDevices[device.name] ? "ON" : "OFF"}
+                </Text>
+                <View
+                  style={[
+                    styles.ledBlock,
+                    {
+                      backgroundColor: runningDevices[device.name]
+                        ? "#00FF00" // Bright green
+                        : "#FF0000", // Bright red
+                    },
+                  ]}
+                />
+              </View>
             </TouchableOpacity>
           ))}
-
-          {/* Add device card */}
-          <TouchableOpacity
-            style={styles.addDeviceItem}
-            onPress={handleAddDevice}
-          >
-            <Icon name="plus" size={50} color="white" />
-          </TouchableOpacity>
         </View>
+        <TouchableOpacity
+          style={styles.addDeviceItem}
+          onPress={handleAddDevice}
+        >
+          <Icon name="plus" size={50} color="white" />
+        </TouchableOpacity>
       </ScrollView>
 
       {/* Add Device Modal */}
@@ -303,6 +335,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
+  },
+  deviceStatusContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  deviceStatus: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "white",
+  },
+  ledBlock: {
+    width: 10,
+    height: 10,
+    marginLeft: 8,
+    marginTop: 8,
+    borderRadius: 8,
+    backgroundColor: "red", // Default color (red if OFF)
   },
   deviceItem: {
     width: "48%",

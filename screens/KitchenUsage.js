@@ -144,9 +144,15 @@ const KitchenUsage = ({ navigation }) => {
   const chartConfig = {
     backgroundGradientFrom: "#ffffff",
     backgroundGradientTo: "#ffffff",
-    color: (opacity = 1) => `rgba(31, 42, 68, ${opacity})`,
-    strokeWidth: 2,
-    barPercentage: 0.5,
+    color: (opacity = 1, index) => {
+      // Assuming chartData.datasets[0].data[index] gives the value for that bar
+      const dataValue = chartData.datasets[0].data[index];
+      return dataValue > 2
+        ? `rgba(255, 215, 0, ${opacity})` // Yellowish color for values > 2 kWh
+        : `rgba(31, 42, 68, ${opacity})`; // Default color for values <= 2 kWh
+    },
+    strokeWidth: 8,
+    barPercentage: 0.9,
   };
 
   return (
@@ -175,7 +181,7 @@ const KitchenUsage = ({ navigation }) => {
           <View style={styles.chartContainer}>
             <BarChart
               data={chartData}
-              width={Dimensions.get("window").width - 30}
+              width={Dimensions.get("window").width - 20}
               height={200}
               yAxisLabel=""
               yAxisSuffix=" kWh"
@@ -195,9 +201,7 @@ const KitchenUsage = ({ navigation }) => {
               style={[
                 styles.deviceItem,
                 {
-                  backgroundColor: runningDevices[device.name]
-                    ? "rgba(76, 175, 80, 0.7)"
-                    : "rgba(244, 67, 54, 0.7)",
+                  backgroundColor: "rgba(76, 175, 80, 0.4)", // Constant background color
                 },
               ]}
               onPress={() => toggleDevice(device.name)}
@@ -209,19 +213,30 @@ const KitchenUsage = ({ navigation }) => {
                   {device.consumption} kWh/hr
                 </Text>
               </View>
-              <Text style={styles.deviceStatus}>
-                {runningDevices[device.name] ? "ON" : "OFF"}
-              </Text>
+              <View style={styles.deviceStatusContainer}>
+                <Text style={styles.deviceStatus}>
+                  {runningDevices[device.name] ? "ON" : "OFF"}
+                </Text>
+                <View
+                  style={[
+                    styles.ledBlock,
+                    {
+                      backgroundColor: runningDevices[device.name]
+                        ? "#00FF00" // Bright green
+                        : "#FF0000", // Bright red
+                    },
+                  ]}
+                />
+              </View>
             </TouchableOpacity>
           ))}
-
-          <TouchableOpacity
-            style={styles.addDeviceItem}
-            onPress={handleAddDevice}
-          >
-            <Icon name="plus" size={50} color="white" />
-          </TouchableOpacity>
         </View>
+        <TouchableOpacity
+          style={styles.addDeviceItem}
+          onPress={handleAddDevice}
+        >
+          <Icon name="plus" size={50} color="white" />
+        </TouchableOpacity>
       </ScrollView>
 
       {showAddDeviceModal && (
@@ -309,7 +324,7 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     marginVertical: 10,
-    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    backgroundColor: "rgba(255, 255, 255, 0.0)",
     borderRadius: 20,
     paddingLeft: 5,
     borderColor: "#fff",
@@ -321,6 +336,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
+  },
+  deviceStatusContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  deviceStatus: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "white",
+  },
+  ledBlock: {
+    width: 10,
+    height: 10,
+    marginLeft: 8,
+    marginTop: 8,
+    borderRadius: 8,
+    backgroundColor: "red", // Default color (red if OFF)
   },
   deviceItem: {
     width: "48%",

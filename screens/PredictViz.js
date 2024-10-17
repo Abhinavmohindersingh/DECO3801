@@ -77,7 +77,7 @@ const PredictViz = ({ navigation }) => {
     datasets: [
       {
         data: [1, 5, 2, 4, 6, 7, 5, 3], // 8 data points corresponding to 8 labels
-        color: () => `rgba(54, 162, 235, 1)`, // Line color
+        color: () => `"rgb(0, 128, 0)"`, // Line color
         strokeWidth: 2, // Line thickness
       },
     ],
@@ -348,6 +348,17 @@ const PredictViz = ({ navigation }) => {
             currentTimeFraction={currentTimeFraction}
           />
         </View>
+
+        <View style={styles.insightsContainer}>
+          <View style={styles.insightItem}>
+            <Text style={styles.boldText}>Predicted Spending:</Text>
+            <Text style={styles.valueText}>$50</Text>
+            <Text style={styles.boldText}>Actual Spending:</Text>
+            <Text style={styles.valueText}>$60</Text>
+          </View>
+          <View style={styles.insightItem}></View>
+          <View style={styles.insightItem}></View>
+        </View>
       </ScrollView>
     </Background>
   );
@@ -360,12 +371,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 20,
   },
+  insightsContainer: {
+    marginTop: 10,
+    marginLeft: 5,
+    padding: 5,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+  },
+  insightText: {
+    fontSize: 12,
+    marginVertical: 0,
+    color: "#fff",
+  },
+  boldText: {
+    fontWeight: "bold",
+    color: "#fff",
+  },
+  valueText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#28a745", // Green color for values
+  },
   backButton: {
     position: "absolute",
     top: 50,
-    left: 20,
+    left: 10,
     backgroundColor: "rgba(31, 42, 68, 0.8)",
-    padding: 8,
+    padding: 4,
     borderRadius: 25,
     zIndex: 2,
     elevation: 5,
@@ -397,7 +429,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   sectionContainer: {
-    marginBottom: 20,
+    marginBottom: 10,
     padding: 10,
     backgroundColor: "rgba(31, 42, 68, 0.7)", // Dark background for contrast
     borderRadius: 20,
@@ -431,6 +463,26 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
+  },
+  insightsContainer: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "row",
+    padding: 15,
+    backgroundColor: "rgba(31, 42, 68, 0.7)",
+    borderRadius: 10,
+  },
+  insightsTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 10,
+    color: "#FFD700",
+    textAlign: "center",
+  },
+  insightText: {
+    fontSize: 16,
+    color: "#FFFFFF",
+    marginBottom: 5,
   },
   tooltipText: {
     color: "#FFD700",

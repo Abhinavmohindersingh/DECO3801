@@ -31,9 +31,9 @@ const LivingUsage = ({ navigation }) => {
   const allDevices = [
     { name: "TV", icon: "television", consumption: 0.4 },
     { name: "Lamp", icon: "lamp", consumption: 0.1 },
-    { name: "Gaming Console", icon: "gamepad-variant", consumption: 0.2 },
-    { name: "Sound System", icon: "speaker", consumption: 0.3 },
-    { name: "Air Conditioner", icon: "air-conditioner", consumption: 1.8 },
+    { name: "Gaming ", icon: "gamepad-variant", consumption: 0.2 },
+    { name: "Sound", icon: "speaker", consumption: 0.3 },
+    { name: "AC", icon: "air-conditioner", consumption: 1.8 },
     { name: "Light", icon: "lightbulb-on-outline", consumption: 0.1 },
   ];
 
@@ -144,9 +144,15 @@ const LivingUsage = ({ navigation }) => {
   const chartConfig = {
     backgroundGradientFrom: "#ffffff",
     backgroundGradientTo: "#ffffff",
-    color: (opacity = 1) => `rgba(31, 42, 68, ${opacity})`,
-    strokeWidth: 2,
-    barPercentage: 0.5,
+    color: (opacity = 1, index) => {
+      // Assuming chartData.datasets[0].data[index] gives the value for that bar
+      const dataValue = chartData.datasets[0].data[index];
+      return dataValue > 2
+        ? `rgba(255, 215, 0, ${opacity})` // Yellowish color for values > 2 kWh
+        : `rgba(31, 42, 68, ${opacity})`; // Default color for values <= 2 kWh
+    },
+    strokeWidth: 8,
+    barPercentage: 0.9,
   };
 
   return (
@@ -195,9 +201,7 @@ const LivingUsage = ({ navigation }) => {
               style={[
                 styles.deviceItem,
                 {
-                  backgroundColor: runningDevices[device.name]
-                    ? "rgba(76, 175, 80, 0.7)"
-                    : "rgba(244, 67, 54, 0.7)",
+                  backgroundColor: "rgba(76, 175, 80, 0.4)", // Constant background color
                 },
               ]}
               onPress={() => toggleDevice(device.name)}
@@ -209,11 +213,24 @@ const LivingUsage = ({ navigation }) => {
                   {device.consumption} kWh/hr
                 </Text>
               </View>
-              <Text style={styles.deviceStatus}>
-                {runningDevices[device.name] ? "ON" : "OFF"}
-              </Text>
+              <View style={styles.deviceStatusContainer}>
+                <Text style={styles.deviceStatus}>
+                  {runningDevices[device.name] ? "ON" : "OFF"}
+                </Text>
+                <View
+                  style={[
+                    styles.ledBlock,
+                    {
+                      backgroundColor: runningDevices[device.name]
+                        ? "#00FF00" // Bright green
+                        : "#FF0000", // Bright red
+                    },
+                  ]}
+                />
+              </View>
             </TouchableOpacity>
           ))}
+
           <TouchableOpacity
             style={styles.addDeviceItem}
             onPress={handleAddDevice}
@@ -321,6 +338,24 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "space-between",
   },
+  deviceStatusContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  deviceStatus: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "white",
+  },
+  ledBlock: {
+    width: 10,
+    height: 10,
+    marginLeft: 8,
+    marginTop: 8,
+    borderRadius: 8,
+    backgroundColor: "red", // Default color (red if OFF)
+  },
   deviceItem: {
     width: "48%",
     flexDirection: "column",
@@ -345,6 +380,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "white",
     marginTop: 5,
+  },
+  deviceStatus: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "white",
+    marginTop: 10,
   },
   addDeviceItem: {
     width: "48%",
@@ -403,12 +444,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
-  },
-  deviceStatus: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "white",
-    marginTop: 10,
   },
 });
 

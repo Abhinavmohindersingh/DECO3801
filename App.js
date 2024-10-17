@@ -24,7 +24,7 @@ import EnergyLimit from "./screens/EnergyLimit";
 import FlowerOne from "./screens/FlowerOne";
 import GarageUsage from "./screens/GarageUsage";
 import ElecSpendingScreen from "./screens/ElecSpendingScreen";
-
+import EnergyLimitSetup from "./screens/EnergyLimitSetup";
 const Stack = createStackNavigator();
 
 const App = () => {
@@ -34,11 +34,11 @@ const App = () => {
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           {/* <Stack.Screen name="FlowerOne" component={FlowerOne} /> */}
+          {/* <Stack.Screen name="LoginScreen" component={LoginScreen} /> */}
 
-          {/* <Stack.Screen name="ProfileScreen" component={ProfileScreen} /> */}
-
-          {/* <Stack.Screen name="EnergyLimit" component={EnergyLimit} /> */}
+          <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
           <Stack.Screen name="FlowerPot" component={FlowerPot} />
+          <Stack.Screen name="EnergyLimitSetup" component={EnergyLimitSetup} />
 
           <Stack.Screen name="AccountScreen" component={AccountScreen} />
 

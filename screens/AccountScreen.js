@@ -1,4 +1,3 @@
-// AccountScreen.js
 import React, { useState, useEffect, useRef, useContext } from "react";
 import {
   View,
@@ -15,6 +14,8 @@ import {
   Keyboard,
   Dimensions,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons"; // Import Ionicons for information icon
+
 import Background from "../components/Background";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { AppContext } from "../AppContext"; // Import AppContext
@@ -24,9 +25,15 @@ const { height } = Dimensions.get("window");
 
 const AccountScreen = ({ navigation }) => {
   const scrollViewRef = useRef(null);
+  const handleInfoPress = (text) => {
+    setInfoText(text);
+    setShowInfoModal(true);
+  };
 
   // Access profileData and setProfileData from context
   const { profileData, setProfileData } = useContext(AppContext);
+  const [infoText, setInfoText] = useState(""); // To display different info text
+  const [showInfoModal, setShowInfoModal] = useState(false); // For information modal visibility
 
   // Local state for modals and other temporary data
   const [showRoomsModal, setShowRoomsModal] = useState(false);
@@ -39,15 +46,16 @@ const AccountScreen = ({ navigation }) => {
 
   // Options for dropdowns and devices
   const roomsOptions = ["1", "2", "3", "4", "5+"];
-  const homeTypeOptions = [
-    "Apartment",
-    "Single-family home",
-    "Townhouse",
-    "Condo",
-    "Other",
+
+  const occupantsOptions = [
+    "23",
+    "33",
+    "27",
+    "45",
+    "28",
+    "30",
+    "Press Info to get Prices for each state",
   ];
-  const occupantsOptions = ["1", "2", "3", "4", "5+"];
-  const energySourceOptions = ["Electricity", "Natural Gas", "Solar"];
 
   const deviceOptions = {
     kitchen: [
@@ -59,9 +67,14 @@ const AccountScreen = ({ navigation }) => {
       "Toaster",
     ],
     laundry: ["Washing Machine", "Dryer", "Iron", "Steam Press"],
-    garage: ["Electric Car Charger", "Power Tools", "Garage Door Opener"],
+    garage: [
+      "Car Battery Charger",
+      "Electric Vehicle Charger",
+      "Power Tools",
+      "Freezer",
+    ],
     livingroom: ["TV", "Gaming Console", "Sound System", "Air Conditioner"],
-    general: ["Lights", "Smart Thermostat", "Security System", "Wi-Fi Router"],
+    BedRoom: ["Lights", "Television", "Ceiling Fan", "Computer"],
   };
 
   const roomIcons = {
@@ -69,28 +82,13 @@ const AccountScreen = ({ navigation }) => {
     laundry: "local-laundry-service",
     garage: "garage",
     livingroom: "weekend",
-    general: "home",
-  };
-
-  useEffect(() => {
-    loadSavedData();
-  }, []);
-
-  const loadSavedData = async () => {
-    try {
-      const data = await AsyncStorage.getItem("profileData");
-      if (data !== null) {
-        setProfileData(JSON.parse(data));
-      }
-    } catch (error) {
-      console.error("Error loading saved data:", error);
-    }
+    BedRoom: "home",
   };
 
   const saveData = async () => {
     try {
       await AsyncStorage.setItem("profileData", JSON.stringify(profileData));
-      Alert.alert("Success", "Your profile data has been saved.");
+      // Alert.alert("Success", "Your profile data has been saved.");
     } catch (error) {
       console.error("Error saving data:", error);
       Alert.alert("Error", "There was an error saving your data.");
@@ -244,6 +242,17 @@ const AccountScreen = ({ navigation }) => {
     }));
     setShowEnergySourceModal(false);
   };
+  const powerPrices = [
+    { state: "ACT", price: "23.67c/kWh" },
+    { state: "NSW", price: "33.84c/kWh" },
+    { state: "Northern Territory", price: "27.37c/kWh" },
+    { state: "QLD", price: "30.21c/kWh" },
+    { state: "SA", price: "45.54c/kWh" },
+    { state: "Tasmania", price: "28.12c/kWh" },
+    { state: "Victoria", price: "28.45c/kWh" },
+    { state: "Western Australia", price: "30.06c/kWh" },
+  ];
+  console.log(powerPrices);
 
   return (
     <Background style={{ flex: 1 }}>
@@ -261,7 +270,17 @@ const AccountScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.formSection}>
-          <Text style={styles.sectionTitle}>Household Details</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Enter Energy price</Text>
+            <TouchableOpacity onPress={() => handleInfoPress(powerPrices)}>
+              <Ionicons
+                name="information-circle-outline"
+                size={20}
+                color="white"
+              />
+            </TouchableOpacity>
+          </View>
+
           <TouchableOpacity
             style={styles.inputContainer}
             onPress={() => setShowRoomsModal(true)}
@@ -277,19 +296,42 @@ const AccountScreen = ({ navigation }) => {
             style={styles.inputContainer}
             onPress={() => setShowOccupantsModal(true)}
           >
-            <Icon name="person" size={24} color="#fff" style={styles.icon} />
+            <Icon
+              name="monetization-on"
+              size={24}
+              color="#fff"
+              style={styles.icon}
+            />
             <Text style={styles.pickerText}>
-              {profileData.occupants
-                ? profileData.occupants
-                : "Select Occupants"}
+              {profileData.occupants ? profileData.occupants : "Select State"}
             </Text>
             <Icon name="keyboard-arrow-down" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.formSection}>
-          <Text style={styles.sectionTitle}>Setup Rooms and Devices</Text>
-          {["general", "livingroom", "kitchen", "laundry", "garage"].map(
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Setup Devices</Text>
+            <TouchableOpacity
+              onPress={() =>
+                handleInfoPress([
+                  "Here you can select rooms and assign devices that are present in those rooms.",
+                  "Each room has a specific set of devices to choose from.",
+                  "Select the devices you want to monitor for energy usage in each room.",
+                  "For example, in the living room, you can select devices like TV, sound system, or air conditioner.",
+                  "In the kitchen, you can monitor devices like the refrigerator, oven, and coffee maker.",
+                ])
+              }
+            >
+              <Ionicons
+                name="information-circle-outline"
+                size={25}
+                color="white"
+              />
+            </TouchableOpacity>
+          </View>
+
+          {["BedRoom", "livingroom", "kitchen", "laundry", "garage"].map(
             (area) => (
               <TouchableOpacity
                 key={area}
@@ -326,7 +368,7 @@ const AccountScreen = ({ navigation }) => {
               handleBackPress();
             }}
           >
-            <Text style={styles.buttonText}>Save and Back</Text>
+            <Text style={styles.buttonText}>Save</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -398,6 +440,44 @@ const AccountScreen = ({ navigation }) => {
           </TouchableWithoutFeedback>
         </Modal>
       )}
+      <Modal
+        visible={showInfoModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowInfoModal(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowInfoModal(false)}>
+          <View style={styles.modalContainer}>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Information</Text>
+                {Array.isArray(infoText) && infoText[0]?.state ? (
+                  infoText.map((item, index) => (
+                    <View key={index} style={styles.priceRow}>
+                      <Text style={styles.stateText}>{item.state}</Text>
+                      <Text style={styles.priceText}>{item.price}</Text>
+                    </View>
+                  ))
+                ) : Array.isArray(infoText) ? (
+                  infoText.map((point, index) => (
+                    <View key={index} style={styles.bulletText}>
+                      <Text style={styles.bulletText}>• {point}</Text>
+                    </View>
+                  ))
+                ) : (
+                  <Text>No data available</Text>
+                )}
+                <TouchableOpacity
+                  style={styles.buttonCloseText}
+                  onPress={() => setShowInfoModal(false)}
+                >
+                  <Text style={styles.buttonCloseText}>Close</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </Background>
   );
 };
@@ -430,12 +510,28 @@ const styles = StyleSheet.create({
   formSection: {},
   sectionTitle: {
     fontSize: 20,
+    marginLeft: "10%",
+    width: "80%",
     fontWeight: "bold",
     color: "#fff",
-    marginBottom: 15,
+    marginBottom: 10,
     textTransform: "uppercase",
     letterSpacing: 1,
   },
+  bulletPointContainer: {
+    flexDirection: "row", // To align the bullet and text in one line
+    marginBottom: 5, // Space between each point
+  },
+  bulletPoint: {
+    fontSize: 20, // Bullet size
+    marginRight: 10, // Space between bullet and text
+    color: "#fff", // Bullet color
+  },
+  bulletText: {
+    fontSize: 14, // Text size
+    color: "#fff", // Text color
+  },
+
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -449,6 +545,12 @@ const styles = StyleSheet.create({
   icon: {
     marginRight: 10,
   },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "right",
+    justifyContent: "right", // Ensure the icon is close to the text
+    marginBottom: 10,
+  },
   pickerText: {
     flex: 1,
     color: "#fff",
@@ -457,7 +559,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 20,
+    marginTop: 5,
   },
   backButton: {
     backgroundColor: "#4CAF50",
@@ -466,6 +568,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   buttonText: {
+    marginTop: 0,
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
@@ -511,6 +614,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#4CAF50",
     paddingVertical: 12,
     borderRadius: 25,
+    marginTop: 10,
     alignItems: "center",
     marginTop: 15,
     paddingHorizontal: 30,
@@ -532,6 +636,32 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     marginBottom: 10,
+  },
+  priceRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginBottom: 10,
+  },
+  stateText: {
+    fontSize: 16,
+    color: "white",
+  },
+  priceText: {
+    fontSize: 16,
+    color: "white",
+  },
+  bulletText: {
+    fontSize: 16,
+    marginVertical: 5,
+    color: "white",
+  },
+  buttonCloseText: {
+    fontSize: 18,
+    color: "pink",
+    textAlign: "left",
+    marginLeft: 113,
+    marginTop: 5,
   },
 });
 

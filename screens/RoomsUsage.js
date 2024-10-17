@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import {
   View,
   Text,
@@ -23,6 +23,62 @@ const RoomsUsage = () => {
       </View>
     );
   }
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const savedProfileData = await AsyncStorage.getItem(PROFILE_DATA_KEY);
+        const savedConsumptionHistory = await AsyncStorage.getItem(
+          CONSUMPTION_HISTORY_KEY
+        );
+        const savedEnergyLimit = await AsyncStorage.getItem(ENERGY_LIMIT_KEY);
+        const savedBillingCycle = await AsyncStorage.getItem(BILL_CYCLE_KEY);
+
+        const savedKitchenConsumption = await AsyncStorage.getItem(
+          CONSUMPTION_KITCHEN_KEY
+        );
+        const savedLivingConsumption = await AsyncStorage.getItem(
+          CONSUMPTION_LIVING_KEY
+        );
+        const savedLaundryConsumption = await AsyncStorage.getItem(
+          CONSUMPTION_LAUNDRY_KEY
+        );
+        const savedGarageConsumption = await AsyncStorage.getItem(
+          CONSUMPTION_GARAGE_KEY
+        );
+
+        if (savedProfileData) {
+          setProfileData(JSON.parse(savedProfileData));
+        }
+        if (savedConsumptionHistory) {
+          setConsumptionHistory(JSON.parse(savedConsumptionHistory));
+        }
+        if (savedEnergyLimit) {
+          setEnergyLimit(parseFloat(savedEnergyLimit));
+        }
+        if (savedBillingCycle) {
+          setBillingCycle(parseInt(savedBillingCycle, 10));
+        }
+
+        // Load and set total consumption values
+        if (savedKitchenConsumption) {
+          setTotalConsumptionKitchen(parseFloat(savedKitchenConsumption));
+        }
+        if (savedLivingConsumption) {
+          setTotalConsumptionLiving(parseFloat(savedLivingConsumption));
+        }
+        if (savedLaundryConsumption) {
+          setTotalConsumptionLaundry(parseFloat(savedLaundryConsumption));
+        }
+        if (savedGarageConsumption) {
+          setTotalConsumptionGarage(parseFloat(savedGarageConsumption));
+        }
+      } catch (e) {
+        console.error("Failed to load data.", e);
+      }
+    };
+    loadData();
+  }, []);
 
   const rooms = profileData.roomNames.filter((room) => room !== "");
 
@@ -82,6 +138,9 @@ const RoomsUsage = () => {
             renderItem={renderItem}
             keyExtractor={(item) => item}
             contentContainerStyle={styles.roomsList}
+            onPress={() =>
+              navigation.navigate("RoomDetailsScreen", { roomName: item })
+            }
           />
         ) : (
           <Text style={styles.noRoomsText}>

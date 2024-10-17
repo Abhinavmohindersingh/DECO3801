@@ -1,5 +1,5 @@
 // AppContext.js
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect, useRef } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Create the context
@@ -7,12 +7,13 @@ export const AppContext = createContext();
 
 // Define the provider component
 export const AppProvider = ({ children }) => {
-  // Existing state variables
+  // Energy Consumption States
   const [totalConsumptionKitchen, setTotalConsumptionKitchen] = useState(0);
   const [totalConsumptionLiving, setTotalConsumptionLiving] = useState(0);
   const [totalConsumptionLaundry, setTotalConsumptionLaundry] = useState(0);
   const [totalConsumptionGarage, setTotalConsumptionGarage] = useState(0);
 
+  // Profile Data State
   const [profileData, setProfileData] = useState({
     rooms: "",
     occupants: "",
@@ -26,15 +27,42 @@ export const AppProvider = ({ children }) => {
     },
   });
 
-  // New state for consumption history
+  // Consumption History State
   const [consumptionHistory, setConsumptionHistory] = useState([]);
+
+  // Loading State
+  const [loading, setLoading] = useState(true);
 
   // Keys for AsyncStorage
   const PROFILE_DATA_KEY = "@profileData";
   const CONSUMPTION_HISTORY_KEY = "@consumptionHistory";
-  const BUDGET_DATA_KEY = "@budgetData";
-  const ENERGY_LIMIT_KEY = "@energyLimit";
-  const BILL_CYCLE_KEY = "@billCycle";
+
+  // References to manage intervals
+  const sumReadings = useRef(0); // Cumulative sum of readings
+  const countReadings = useRef(0); // Count of readings
+  const intervalRef = useRef(null); // Reference to the 1-second interval
+  const hourlyIntervalRef = useRef(null); // Reference to the 1-hour interval
+
+  // Reference to hold the latest totalConsumption to avoid stale closures
+  const totalConsumptionRef = useRef(0);
+
+  // Update the ref whenever any totalConsumption changes
+  useEffect(() => {
+    totalConsumptionRef.current =
+      totalConsumptionKitchen +
+      totalConsumptionLiving +
+      totalConsumptionLaundry +
+      totalConsumptionGarage;
+  }, [
+    totalConsumptionKitchen,
+    totalConsumptionLiving,
+    totalConsumptionLaundry,
+    totalConsumptionGarage,
+  ]);
+
+  /**
+   * Data Persistence Functions
+   */
 
   // Save profile data to AsyncStorage
   const saveProfileData = async (data) => {
@@ -53,6 +81,7 @@ export const AppProvider = ({ children }) => {
       return jsonData != null ? JSON.parse(jsonData) : null;
     } catch (e) {
       console.error("Failed to load profile data.", e);
+      return null;
     }
   };
 
@@ -89,6 +118,8 @@ export const AppProvider = ({ children }) => {
       if (savedConsumptionHistory) {
         setConsumptionHistory(savedConsumptionHistory);
       }
+
+      setLoading(false); // Data loading complete
     };
 
     loadData();
@@ -104,12 +135,148 @@ export const AppProvider = ({ children }) => {
     saveConsumptionHistory(consumptionHistory);
   }, [consumptionHistory]);
 
+  /**
+   * Data Capturing Logic
+   */
+
+  // Function to start data capturing every second
+  const startDataCapture = () => {
+    if (intervalRef.current) return; // Prevent multiple intervals
+
+    intervalRef.current = setInterval(() => {
+      const currentReading = totalConsumptionRef.current + 1.5;
+      sumReadings.current += currentReading;
+      countReadings.current += 1;
+
+      // Log the current totalConsumption every second
+      console.log(`Current Total Consumption: ${currentReading} kWh/hr`);
+    }, 1000); // Every second
+  };
+
+  // Start data capture when data is loaded
+  useEffect(() => {
+    if (!loading) {
+      startDataCapture();
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [loading]);
+
+  // Function to calculate hourly average
+  const calculateHourlyAverage = () => {
+    if (countReadings.current === 0) return;
+
+    const average = parseFloat(
+      (sumReadings.current / countReadings.current).toFixed(2)
+    );
+
+    // Log the hourly average
+    console.log(`Hourly Average Consumption: ${average} kWh/hr`);
+
+    // Update consumptionHistory with the average
+    setConsumptionHistory((prevHistory) => {
+      const updatedHistory = [...prevHistory, average];
+      // Keep only the last 14 hours
+      if (updatedHistory.length > 14) {
+        updatedHistory.shift();
+      }
+      return updatedHistory;
+    });
+
+    // Optionally, send the average to the server
+    sendTotalConsumptionToServer(average);
+
+    // Reset the sum and count
+    sumReadings.current = 0;
+    countReadings.current = 0;
+  };
+
+  // Setup hourly interval
+  useEffect(() => {
+    const hourlyInterval = setInterval(() => {
+      calculateHourlyAverage();
+    }, 10000); // Every hour (3600000 ms)
+
+    return () => clearInterval(hourlyInterval); // Cleanup on unmount
+  }, []);
+
+  /**
+   * Server Communication
+   */
+
+  // Function to send total consumption to the server
+  const sendTotalConsumptionToServer = async (average) => {
+    try {
+      // Get current time in 24-hour format: HH:mm:ss
+      const currentTime = new Date().toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      });
+
+      // Prepare the data to be sent
+      const dataToSend = {
+        current_time: currentTime, // current timestamp in 24-hour format
+        Global_active_power: average, // average consumption value
+      };
+
+      console.log("Data being sent to the server:", dataToSend);
+
+      // Send the data to the server
+      const response = await fetch("http://34.87.202.191:4000/api", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataToSend), // Send the JSON data
+      });
+
+      // Check if the response is okay
+      if (!response.ok) {
+        throw new Error(`Server responded with status ${response.status}`);
+      }
+
+      // Get and log the server's response
+      const result = await response.json();
+      console.log("Server response:", result);
+    } catch (error) {
+      console.error("Error sending data to server:", error);
+    }
+  };
+
+  /**
+   * Cleanup Intervals on Unmount
+   */
+  useEffect(() => {
+    return () => {
+      // Clear the 1-second interval
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+
+      // Clear the 1-hour interval
+      if (hourlyIntervalRef.current) {
+        clearInterval(hourlyIntervalRef.current);
+      }
+    };
+  }, []);
+
+  /**
+   * Context Provider
+   */
   return (
     <AppContext.Provider
       value={{
-        // Existing context values
+        // Profile Data
         profileData,
         setProfileData,
+
+        // Energy Consumption States
         totalConsumptionKitchen,
         setTotalConsumptionKitchen,
         totalConsumptionLiving,
@@ -119,11 +286,14 @@ export const AppProvider = ({ children }) => {
         totalConsumptionGarage,
         setTotalConsumptionGarage,
 
-        // New context values for consumption history
+        // Consumption History
         consumptionHistory,
         setConsumptionHistory,
         saveConsumptionHistory,
         loadConsumptionHistory,
+
+        // Loading State
+        loading,
       }}
     >
       {children}

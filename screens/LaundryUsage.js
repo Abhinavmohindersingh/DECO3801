@@ -28,11 +28,11 @@ const LaundryUsage = ({ navigation }) => {
   const selectedDevices = profileData.devices.laundry || [];
 
   const allDevices = [
-    { name: "Washing Machine", icon: "washing-machine", consumption: 1.0 },
+    { name: "Wash Machine", icon: "washing-machine", consumption: 1.0 },
     { name: "Dryer", icon: "tumble-dryer", consumption: 2.0 },
     { name: "Iron", icon: "iron", consumption: 0.8 },
     { name: "Steam Press", icon: "iron-outline", consumption: 0.7 },
-    { name: "Fabric Steamer", icon: "spray", consumption: 0.5 },
+    { name: " Steamer", icon: "spray", consumption: 0.5 },
     { name: "Light", icon: "lightbulb", consumption: 0.1 },
   ];
 
@@ -141,9 +141,15 @@ const LaundryUsage = ({ navigation }) => {
   const chartConfig = {
     backgroundGradientFrom: "#ffffff",
     backgroundGradientTo: "#ffffff",
-    color: (opacity = 1) => `rgba(31, 42, 68, ${opacity})`,
-    strokeWidth: 2,
-    barPercentage: 0.5,
+    color: (opacity = 1, index) => {
+      // Assuming chartData.datasets[0].data[index] gives the value for that bar
+      const dataValue = chartData.datasets[0].data[index];
+      return dataValue > 2
+        ? `rgba(255, 215, 0, ${opacity})` // Yellowish color for values > 2 kWh
+        : `rgba(31, 42, 68, ${opacity})`; // Default color for values <= 2 kWh
+    },
+    strokeWidth: 8,
+    barPercentage: 0.9,
   };
 
   return (
@@ -192,9 +198,7 @@ const LaundryUsage = ({ navigation }) => {
               style={[
                 styles.deviceItem,
                 {
-                  backgroundColor: runningDevices[device.name]
-                    ? "rgba(76, 175, 80, 0.7)"
-                    : "rgba(244, 67, 54, 0.7)",
+                  backgroundColor: "rgba(76, 175, 80, 0.4)", // Constant background color
                 },
               ]}
               onPress={() => toggleDevice(device.name)}
@@ -206,19 +210,30 @@ const LaundryUsage = ({ navigation }) => {
                   {device.consumption} kWh/hr
                 </Text>
               </View>
-              <Text style={styles.deviceStatus}>
-                {runningDevices[device.name] ? "ON" : "OFF"}
-              </Text>
+              <View style={styles.deviceStatusContainer}>
+                <Text style={styles.deviceStatus}>
+                  {runningDevices[device.name] ? "ON" : "OFF"}
+                </Text>
+                <View
+                  style={[
+                    styles.ledBlock,
+                    {
+                      backgroundColor: runningDevices[device.name]
+                        ? "#00FF00" // Bright green
+                        : "#FF0000", // Bright red
+                    },
+                  ]}
+                />
+              </View>
             </TouchableOpacity>
           ))}
-
-          <TouchableOpacity
-            style={styles.addDeviceItem}
-            onPress={handleAddDevice}
-          >
-            <Icon name="plus" size={50} color="white" />
-          </TouchableOpacity>
         </View>
+        <TouchableOpacity
+          style={styles.addDeviceItem}
+          onPress={handleAddDevice}
+        >
+          <Icon name="plus" size={50} color="white" />
+        </TouchableOpacity>
       </ScrollView>
 
       {showAddDeviceModal && (
@@ -272,7 +287,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 40,
     left: 10,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.5)", // Semi-transparent for better visibility
     padding: 10,
     borderRadius: 20,
     width: 50,
@@ -314,21 +329,26 @@ const styles = StyleSheet.create({
   chart: {
     borderRadius: 16,
   },
-  devicesContainer: {
+
+  deviceStatusContainer: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-  deviceItem: {
-    width: "48%",
-    flexDirection: "column",
     alignItems: "center",
-    padding: 15,
-    borderRadius: 20,
-    marginBottom: 15,
-    borderWidth: 2,
-    borderColor: "#fff",
+    marginTop: 10,
   },
+  deviceStatus: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "white",
+  },
+  ledBlock: {
+    width: 10,
+    height: 10,
+    marginLeft: 8,
+    marginTop: 8,
+    borderRadius: 8,
+    backgroundColor: "red", // Default color (red if OFF)
+  },
+
   deviceInfo: {
     alignItems: "center",
     marginTop: 10,
@@ -350,17 +370,33 @@ const styles = StyleSheet.create({
     color: "white",
     marginTop: 10,
   },
+  devicesContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    alignItems: "center", // Ensure items are aligned in a row
+  },
+  deviceItem: {
+    width: "48%", // Ensure that both the devices and the add card fit within the row
+    flexDirection: "column",
+    alignItems: "center",
+    padding: 15,
+    borderRadius: 20,
+    marginBottom: 15,
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
   addDeviceItem: {
-    width: "48%",
+    width: "48%", // Same width as other devices to align in the row
     height: 150,
     justifyContent: "center",
     alignItems: "center",
     padding: 15,
     borderRadius: 20,
-    marginBottom: 15,
     backgroundColor: "rgba(0, 0, 0, 0.3)",
     borderWidth: 2,
     borderColor: "#fff",
+    marginBottom: 15, // Consistent margin with other items
   },
   modalContainer: {
     flex: 1,

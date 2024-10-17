@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import {
   View,
   Text,
@@ -22,11 +22,11 @@ const LiveUsage = () => {
     consumptionHistory,
     setConsumptionHistory,
     saveConsumptionHistory,
-    // Existing context values
     totalConsumptionKitchen,
     totalConsumptionLiving,
     totalConsumptionGarage,
     totalConsumptionLaundry,
+    loading,
   } = useContext(AppContext);
 
   const rooms = [
@@ -69,9 +69,101 @@ const LiveUsage = () => {
   const sendZone = async (ledStatus) => {
     // Implement your server communication logic here
   };
+  const sumReadings = useRef(0); // Cumulative sum of readings
+  const countReadings = useRef(0); // Count of readings
+  const intervalRef = useRef(null); // Reference to the 1-second interval
+  const hourlyIntervalRef = useRef(null); // Reference to the 1-hour interval
 
+  const totalConsumptionRef = useRef(totalConsumption);
+
+  // Update the ref whenever totalConsumption changes
+  useEffect(() => {
+    totalConsumptionRef.current = totalConsumption;
+  }, [totalConsumption]);
+
+  // Capture totalConsumption every second
+  useEffect(() => {
+    if (loading) return; // Don't start if data is still loading
+
+    intervalRef.current = setInterval(() => {
+      const currentReading = totalConsumptionRef.current;
+      sumReadings.current += currentReading;
+      countReadings.current += 1;
+      console.log(`Current Total Consumption: ${currentReading} kWh/hr`);
+    }, 1000); // Every second
+
+    return () => clearInterval(intervalRef.current); // Cleanup on unmount
+  }, [loading]);
+
+  // Calculate hourly average every hour (3600 seconds)
+  useEffect(() => {
+    if (loading) return; // Don't start if data is still loading
+
+    hourlyIntervalRef.current = setInterval(() => {
+      if (countReadings.current === 0) return;
+
+      const average = parseFloat(
+        (sumReadings.current / countReadings.current).toFixed(2)
+      );
+
+      // Update consumptionHistory with the average
+      setConsumptionHistory((prevHistory) => {
+        const updatedHistory = [...prevHistory, average];
+        // Keep only the last 14 hours
+        if (updatedHistory.length > 14) {
+          updatedHistory.shift();
+        }
+        return updatedHistory;
+      });
+
+      // Optionally, send the average to the server
+      sendTotalConsumptionToServer(average);
+
+      // Reset the sum and count
+      sumReadings.current = 0;
+      countReadings.current = 0;
+    }, 3600000); // Every hour (3600000 ms)
+
+    return () => clearInterval(hourlyIntervalRef.current); // Cleanup on unmount
+  }, [loading, setConsumptionHistory]);
   const sendTotalConsumptionToServer = async (total) => {
-    // Implement your server communication logic here
+    try {
+      // Get current time in 24-hour format: YYYY-MM-DD HH:mm:ss
+      const currentTime = new Date()
+        .toLocaleString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        })
+        .replace(",", ""); // Remove the comma between date and time
+
+      // Prepare the data to be sent
+      const dataToSend = {
+        current_time: currentTime, // current timestamp in 24-hour format
+        Global_active_power: total, // total consumption value
+      };
+
+      console.log(
+        "JSON format being sent to the server:",
+        JSON.stringify(dataToSend, null, 2)
+      ); // Log the JSON format
+
+      // Send the data to the server
+      const response = await fetch("http://34.87.202.191:4000/api", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataToSend), // Send the JSON data
+      });
+
+      // Get and log the server's response
+      const result = await response.json();
+      console.log("Server response:", result);
+    } catch (error) {
+      console.error("Error sending data to server:", error); // Log any errors
+    }
   };
 
   // Save running rooms state to AsyncStorage
@@ -144,6 +236,62 @@ const LiveUsage = () => {
     }
   }, [runningRooms]);
 
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const savedProfileData = await AsyncStorage.getItem(PROFILE_DATA_KEY);
+        const savedConsumptionHistory = await AsyncStorage.getItem(
+          CONSUMPTION_HISTORY_KEY
+        );
+        const savedEnergyLimit = await AsyncStorage.getItem(ENERGY_LIMIT_KEY);
+        const savedBillingCycle = await AsyncStorage.getItem(BILL_CYCLE_KEY);
+
+        const savedKitchenConsumption = await AsyncStorage.getItem(
+          CONSUMPTION_KITCHEN_KEY
+        );
+        const savedLivingConsumption = await AsyncStorage.getItem(
+          CONSUMPTION_LIVING_KEY
+        );
+        const savedLaundryConsumption = await AsyncStorage.getItem(
+          CONSUMPTION_LAUNDRY_KEY
+        );
+        const savedGarageConsumption = await AsyncStorage.getItem(
+          CONSUMPTION_GARAGE_KEY
+        );
+
+        if (savedProfileData) {
+          setProfileData(JSON.parse(savedProfileData));
+        }
+        if (savedConsumptionHistory) {
+          setConsumptionHistory(JSON.parse(savedConsumptionHistory));
+        }
+        if (savedEnergyLimit) {
+          setEnergyLimit(parseFloat(savedEnergyLimit));
+        }
+        if (savedBillingCycle) {
+          setBillingCycle(parseInt(savedBillingCycle, 10));
+        }
+
+        // Load and set total consumption values
+        if (savedKitchenConsumption) {
+          setTotalConsumptionKitchen(parseFloat(savedKitchenConsumption));
+        }
+        if (savedLivingConsumption) {
+          setTotalConsumptionLiving(parseFloat(savedLivingConsumption));
+        }
+        if (savedLaundryConsumption) {
+          setTotalConsumptionLaundry(parseFloat(savedLaundryConsumption));
+        }
+        if (savedGarageConsumption) {
+          setTotalConsumptionGarage(parseFloat(savedGarageConsumption));
+        }
+      } catch (e) {
+        console.error("Failed to load data.", e);
+      }
+    };
+    loadData();
+  }, []);
+
   // **Storing Total Consumption Every 5 Minutes**
   useEffect(() => {
     const interval = setInterval(() => {
@@ -159,7 +307,7 @@ const LiveUsage = () => {
 
       // Update context state and persist it
       setConsumptionHistory(updatedHistory);
-      saveConsumptionHistory(updatedHistory);
+      // saveConsumptionHistory(updatedHistory);
     }, 1000); // 5 minutes in milliseconds
 
     return () => clearInterval(interval); // Clean up on unmount
@@ -167,22 +315,23 @@ const LiveUsage = () => {
     totalConsumption,
     consumptionHistory,
     setConsumptionHistory,
-    saveConsumptionHistory,
+    // saveConsumptionHistory,
   ]);
 
-  const toggleRoom = (roomName) => {
-    setRunningRooms((prev) => ({
-      ...prev,
-      [roomName]: !prev[roomName],
-    }));
-  };
+  // const toggleRoom = (roomName) => {
+  //   setRunningRooms((prev) => ({
+  //     ...prev,
+  //     [roomName]: !prev[roomName],
+  //   }));
+  // };
 
   const chartConfig = {
     backgroundGradientFrom: "#ffffff",
     backgroundGradientTo: "#ffffff",
     color: (opacity = 1) => `rgba(31, 42, 68, ${opacity})`,
     strokeWidth: 2,
-    barPercentage: 0.5,
+    fontWeight: 700,
+    barPercentage: 0.8,
   };
 
   // Function to get the current consumption of a room
@@ -236,22 +385,32 @@ const LiveUsage = () => {
               style={[
                 styles.roomItem,
                 {
-                  backgroundColor: runningRooms[room.name]
-                    ? "rgba(76, 175, 80, 0.7)" // Green when ON
-                    : "rgba(244, 67, 54, 0.7)", // Red when OFF
+                  backgroundColor:
+                    parseFloat(room.consumption) === 0
+                      ? "rgba(76, 175, 80, 0.2)" // Green for 0 consumption
+                      : parseFloat(room.consumption) <= 2
+                      ? "rgba(76, 175, 80, 0.7)" // Green for optimal usage
+                      : parseFloat(room.consumption) <= 3.7
+                      ? "rgba(255, 235, 59, 0.7)" // Yellow for moderate usage
+                      : "rgba(244, 67, 54, 0.7)", // Red for high usage
                 },
               ]}
-              onPress={() => toggleRoom(room.name)}
             >
               <Icon name={room.icon} size={30} color="white" />
               <View style={styles.roomInfo}>
                 <Text style={styles.roomName}>{room.name}</Text>
                 <Text style={styles.roomConsumption}>
-                  {getCurrentConsumption(room).toFixed(2)} kWh/hr
+                  {parseFloat(room.consumption).toFixed(2)} kWh/hr
                 </Text>
               </View>
               <Text style={styles.roomStatus}>
-                {runningRooms[room.name] ? "ON" : "OFF"}
+                {parseFloat(room.consumption) <= 0
+                  ? " No Usage"
+                  : parseFloat(room.consumption) <= 2
+                  ? " Optimal"
+                  : parseFloat(room.consumption) <= 3.7
+                  ? "High"
+                  : "Very High"}
               </Text>
             </TouchableOpacity>
           ))}
@@ -310,7 +469,7 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     marginVertical: 10,
-    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: 20,
     paddingLeft: 5,
     borderColor: "#fff",

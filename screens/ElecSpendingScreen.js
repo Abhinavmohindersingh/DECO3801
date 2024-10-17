@@ -1,5 +1,6 @@
-// SpendingScreen.js
-import React, { useContext, useMemo } from "react";
+// ElecSpendingScreen.js
+
+import React, { useContext, useMemo, useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -13,32 +14,59 @@ import { LineChart } from "react-native-chart-kit";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { AppContext } from "../AppContext";
 import Background from "../components/Background"; // Ensure correct path
-import Svg, { Line, Circle } from "react-native-svg";
 import { useNavigation } from "@react-navigation/native"; // Correctly import useNavigation
 
 const ElecSpendingScreen = () => {
   const navigation = useNavigation(); // Correctly use useNavigation
   const { consumptionHistory } = useContext(AppContext);
+  const [tipVisible, setTipVisible] = useState(false); // State for showing tips
 
-  // Generate labels based on the number of entries
+  // Define fixed width per data point (e.g., 60 pixels)
+  const POINT_WIDTH = 60;
+  const chartHeight = 300; // Increased from 220 to 300
+  // You can adjust the chartHeight as per your design requirements
+
+  // Define the total number of hours from 4 AM to 12 AM (midnight)
+  const TOTAL_HOURS = 20;
+
+  /**
+   * Generate fixed labels from 4 AM to 12 AM with minutes
+   */
   const generateLabels = () => {
     const labels = [];
-    const now = new Date();
-
-    consumptionHistory.forEach((_, index) => {
-      const time = new Date(
-        now.getTime() - (consumptionHistory.length - index - 1) * 5 * 60 * 1000
-      );
-      const hours = time.getHours().toString().padStart(2, "0");
-      const minutes = time.getMinutes().toString().padStart(2, "0");
-      labels.push(`${hours}:${minutes}`);
-    });
-
+    for (let i = 4; i <= 24; i++) {
+      let hour = i;
+      let ampm = "AM";
+      if (hour === 0) {
+        hour = 12;
+        ampm = "AM";
+      } else if (hour === 12) {
+        ampm = "PM";
+      } else if (hour > 12) {
+        hour -= 12;
+        ampm = "PM";
+      }
+      labels.push(`${hour}:00 ${ampm}`); // Includes minutes
+    }
     return labels;
   };
 
   const labels = generateLabels();
-  const data = consumptionHistory;
+
+  // Slice the last 20 data points (from 4 AM to 12 AM)
+  const data = consumptionHistory.slice(-TOTAL_HOURS);
+
+  /**
+   * Pad the data with zeros if there are fewer than 20 data points
+   * This ensures consistent spacing and alignment on the chart
+   */
+  const paddedData = useMemo(() => {
+    const padding = TOTAL_HOURS - data.length;
+    if (padding > 0) {
+      return Array(padding).fill(0).concat(data);
+    }
+    return data;
+  }, [data]);
 
   // Calculate peak consumption and peak period using useMemo for optimization
   const { peakConsumption, peakPeriod, averageConsumption, totalConsumption } =
@@ -70,7 +98,7 @@ const ElecSpendingScreen = () => {
     labels: labels,
     datasets: [
       {
-        data: data,
+        data: paddedData,
         color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`, // Line color
         strokeWidth: 2, // Line thickness
       },
@@ -92,6 +120,7 @@ const ElecSpendingScreen = () => {
       strokeWidth: "2",
       stroke: "#FFD700",
     },
+    formatXLabel: (value) => value, // Show full time labels with minutes
     propsForBackgroundLines: {
       stroke: "#444C5E",
     },
@@ -100,14 +129,14 @@ const ElecSpendingScreen = () => {
   /**
    * Reusable ChartWithTooltip Component
    */
-  const ChartWithTooltip = ({ data, type, peakIndex }) => {
-    const [tooltipVisible, setTooltipVisible] = React.useState(false);
-    const [tooltipData, setTooltipData] = React.useState(null);
-    const [tooltipPosition, setTooltipPosition] = React.useState({
+  const ChartWithTooltip = ({ data, labels, peakIndex }) => {
+    const [tooltipVisible, setTooltipVisible] = useState(false);
+    const [tooltipData, setTooltipData] = useState(null);
+    const [tooltipPosition, setTooltipPosition] = useState({
       x: 0,
       y: 0,
     });
-    const fadeAnim = React.useRef(new Animated.Value(0)).current;
+    const fadeAnim = useRef(new Animated.Value(0)).current;
 
     /**
      * Handles data point clicks to display tooltip
@@ -118,7 +147,7 @@ const ElecSpendingScreen = () => {
 
       // Set tooltip data and position
       setTooltipData({
-        label: data.labels[index],
+        label: labels[index],
         value,
       });
       setTooltipPosition({ x, y });
@@ -132,27 +161,24 @@ const ElecSpendingScreen = () => {
       }).start();
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
       if (!tooltipVisible) {
         // Reset fadeAnim when tooltip is hidden
         fadeAnim.setValue(0);
       }
     }, [tooltipVisible, fadeAnim]);
 
-    /**
-     * Renders markers for the chart, including the peak marker
-     */
-
     return (
       <View style={styles.chartContainer}>
         <LineChart
           data={data}
-          width={Dimensions.get("window").width - 40} // Adjusted width for better fit
-          height={180} // Increased height for better label visibility
+          width={TOTAL_HOURS * POINT_WIDTH} // Dynamic width based on data points
+          height={chartHeight} // Increased chart height
           chartConfig={chartConfig}
           bezier
           style={styles.chartStyle}
           onDataPointClick={handleDataPointClick}
+          fromZero={true}
         />
 
         {/* Tooltip */}
@@ -163,8 +189,8 @@ const ElecSpendingScreen = () => {
             style={[
               styles.tooltip,
               {
-                left: tooltipPosition.x - 50, // Center the tooltip horizontally
-                top: tooltipPosition.y - 80, // Position above the data point
+                left: tooltipPosition.x - 60, // Center the tooltip horizontally
+                top: tooltipPosition.y - 10, // Adjusted position for increased chart height
                 opacity: fadeAnim,
               },
             ]}
@@ -178,6 +204,22 @@ const ElecSpendingScreen = () => {
       </View>
     );
   };
+
+  /**
+   * Renders the informational tip
+   */
+  const renderEnergyInfo = () => (
+    <View style={styles.tipContainer}>
+      <Text style={styles.tipText}>
+        This screen provides an overview of your energy spending. The chart
+        shows your spending over time, converted from your energy usage at a
+        rate of $0.25 per kWh. The insights section below summarizes your
+        average spending, total spending so far, and the period during which
+        your energy consumption was at its peak. You can also view your current
+        budget and how much you have left for the billing cycle.
+      </Text>
+    </View>
+  );
 
   return (
     <Background>
@@ -194,28 +236,37 @@ const ElecSpendingScreen = () => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Spending Overview</Text>
+          <Text style={styles.headerTitle}>Consumption Overview</Text>
           <View style={styles.currentTimeContainer}>
             <Icon name="clock-time-four" size={20} color="#FFD700" />
             <Text style={styles.currentTimeText}>
-              {labels.slice(-1)[0] || "00:00"}
+              {labels.length > 0 ? labels[labels.length - 1] : "00:00 AM"}
             </Text>
           </View>
         </View>
 
         {/* Chart Section */}
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Energy Consumption History</Text>
+          <Text style={styles.sectionTitle}>Energy Consumption</Text>
           {consumptionHistory.length > 0 ? (
-            <ChartWithTooltip
-              data={chartData}
-              type="spending"
-              peakIndex={
-                consumptionHistory.length > 0
-                  ? consumptionHistory.indexOf(peakConsumption)
-                  : -1
-              }
-            />
+            <ScrollView
+              horizontal
+              contentContainerStyle={{
+                paddingLeft: 20,
+                paddingRight: 20,
+              }}
+              showsHorizontalScrollIndicator={false}
+            >
+              <ChartWithTooltip
+                data={chartData}
+                labels={labels}
+                peakIndex={
+                  consumptionHistory.length > 0
+                    ? consumptionHistory.indexOf(peakConsumption)
+                    : -1
+                }
+              />
+            </ScrollView>
           ) : (
             <View style={styles.noDataContainer}>
               <Icon name="alert-circle-outline" size={50} color="#FFD700" />
@@ -251,6 +302,19 @@ const ElecSpendingScreen = () => {
             <Text style={styles.insightText}>No data to display insights.</Text>
           )}
         </View>
+
+        {/* Info Button */}
+        <TouchableOpacity
+          style={styles.tipButton}
+          onPress={() => setTipVisible(!tipVisible)}
+          accessibilityLabel="Toggle Info"
+        >
+          <Icon name="lightbulb-on" size={20} color="#FFF" />
+          <Text style={styles.tipButtonText}>Info</Text>
+        </TouchableOpacity>
+
+        {/* Render Energy Tip if visible */}
+        {tipVisible && renderEnergyInfo()}
       </ScrollView>
     </Background>
   );
@@ -259,7 +323,6 @@ const ElecSpendingScreen = () => {
 const styles = StyleSheet.create({
   scrollContainer: {
     marginLeft: 10,
-    width: 380,
     flexGrow: 1, // Ensures content expands to fill the ScrollView
     paddingTop: 60,
     paddingHorizontal: 20,
@@ -274,6 +337,31 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     zIndex: 2,
     elevation: 5,
+  },
+  tipContainer: {
+    backgroundColor: "rgba(76, 175, 80, 0.7)", // 0.7 transparency green
+    borderRadius: 10,
+    padding: 15,
+    marginTop: 20,
+  },
+  tipText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  tipButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(76, 175, 80, 0.7)", // 0.7 transparency green
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    marginTop: 20,
+  },
+  tipButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    marginLeft: 10,
   },
   header: {
     alignItems: "center",
@@ -332,7 +420,8 @@ const styles = StyleSheet.create({
   },
   noDataContainer: {
     alignItems: "center",
-    marginBottom: 30,
+    justifyContent: "center",
+    height: 180,
   },
   noDataText: {
     marginTop: 10,
@@ -363,15 +452,15 @@ const styles = StyleSheet.create({
   },
   tooltip: {
     position: "absolute",
-    width: 100,
-    padding: 8,
-    backgroundColor: "rgba(31, 42, 68, 0.9)",
+    width: 120, // Reduced width for smaller tooltip
+    padding: 6, // Reduced padding for smaller tooltip
+    backgroundColor: "rgba(76, 175, 80, 0.7)", // 0.7 transparency green
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
   },
   tooltipText: {
-    color: "#FFD700",
+    color: "#FFFFFF", // Changed to white for better contrast on green background
     fontSize: 12,
     fontWeight: "700",
   },
@@ -379,21 +468,21 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "600",
-    marginTop: 4,
+    marginTop: 2, // Reduced margin for compactness
   },
   tooltipArrow: {
     position: "absolute",
-    bottom: -10,
+    bottom: -8, // Adjusted for better alignment
     left: "50%",
     marginLeft: -5,
     width: 0,
     height: 0,
     borderLeftWidth: 5,
     borderRightWidth: 5,
-    borderTopWidth: 10,
+    borderTopWidth: 8, // Reduced size for smaller arrow
     borderLeftColor: "transparent",
     borderRightColor: "transparent",
-    borderTopColor: "rgba(31, 42, 68, 0.9)",
+    borderTopColor: "rgba(76, 175, 80, 0.7)", // Match tooltip background
   },
 });
 

@@ -30,10 +30,11 @@ const menuOptions = [
   { name: "Live", iconName: "chart-bar", href: "LiveUsage" },
 
   {
-    name: "Elec. Spent",
-    iconName: "electron",
+    name: "Energy Spent",
+    iconName: "battery-charging",
     href: "ElecSpendingScreen",
   },
+
   { name: "Spendings", iconName: "currency-usd", href: "SpendingScreen" },
   { name: "Limit", iconName: "cash-multiple", href: "EnergyLimit" },
   { name: "Settings", iconName: "cogs", href: "SettingsScreen" },
@@ -91,24 +92,67 @@ const FlowerPot = () => {
     navigation.navigate(href);
   };
 
-  const renderMenuOption = ({ item }) => (
-    <TouchableOpacity
-      style={styles.menuItem}
-      onPress={() => handleMenuItemClick(item.href)}
-    >
-      <MaterialCommunityIcons name={item.iconName} size={30} color="#fff" />
-      <Text style={styles.menuLabel}>{item.name}</Text>
-    </TouchableOpacity>
-  );
+  const renderMenuOption = ({ item }) => {
+    const isLiveOption = item.name === "Live";
+    const isHighUsage = threshold > 1.4;
+    const isModerateUsage = threshold >= 0.75 && threshold <= 1.4;
+
+    const borderColor = isLiveOption
+      ? isHighUsage
+        ? "#FF0000"
+        : isModerateUsage
+        ? "#FFD700"
+        : "#00FF00"
+      : "#fff";
+
+    const backgroundColor =
+      isLiveOption && isHighUsage
+        ? "rgba(255, 0, 0, 0.3)"
+        : "rgba(119, 119, 119, 0.3)";
+    const textColor = isLiveOption && isHighUsage ? "#fff" : "#fff";
+
+    return (
+      <TouchableOpacity
+        style={[
+          styles.menuItem,
+          {
+            borderColor: borderColor,
+            borderWidth: 2,
+            backgroundColor: backgroundColor,
+          },
+        ]}
+        onPress={() => handleMenuItemClick(item.href)}
+      >
+        <MaterialCommunityIcons
+          name={item.iconName}
+          size={30}
+          color={textColor}
+        />
+        <Text style={[styles.menuLabel, { color: textColor }]}>
+          {item.name}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   // Function to return the correct flower pot model based on the threshold value
   const getFlowerPotModel = () => {
-    if (threshold > 0 && threshold < 0.75) {
+    if (threshold > 0 && threshold <= 0.75) {
       return <Model position={[0, -1, 0]} />;
-    } else if (threshold >= 0.74 && threshold < 1.4) {
+    } else if (threshold > 0.75 && threshold <= 1.4) {
       return <ModelNeutral position={[0, -1, 0]} />;
     } else {
       return <ModelBad position={[0, -1, 0]} />;
+    }
+  };
+
+  const getBorderColor = () => {
+    if (threshold > 0 && threshold < 0.75) {
+      return "#00FF00"; // Green for low usage
+    } else if (threshold >= 0.75 && threshold < 1.4) {
+      return "#FFD700"; // Yellow for moderate usage
+    } else {
+      return "#FF0000"; // Red for high usage
     }
   };
 
@@ -130,10 +174,19 @@ const FlowerPot = () => {
               onPress={handleFlashPress}
               style={styles.iconContainer}
             >
-              <Icon name="flash-outline" size={50} color="#FFD700" />
+              <Icon name="home" size={40} color="#FFD700" />
             </TouchableOpacity>
 
-            <Text style={{ color: "#FFD700", fontSize: 30 }}>Track Usage</Text>
+            <Text
+              style={{
+                color: "#FFD700",
+                fontSize: 30,
+                marginTop: 5,
+                fontWeight: 500,
+              }}
+            >
+              WinDash
+            </Text>
           </View>
 
           <TouchableOpacity
@@ -251,9 +304,8 @@ const FlowerPot = () => {
           onPressOut={() => setModalVisible(false)}
         >
           <View style={styles.modalView}>
-            <Text style={styles.modalTitle}>Current Energy Usage</Text>
             <Text style={styles.modalDescription}>
-              Your current energy usage is {currentUsage} kWh.
+              Your current energy usage is {totalConsumption} kWh.
             </Text>
             <TouchableOpacity
               style={styles.modalCloseButton}
@@ -297,7 +349,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     borderWidth: 2,
     borderColor: "#fff",
-
     top: 400,
     left: 0,
     right: 0,
@@ -340,19 +391,23 @@ const styles = StyleSheet.create({
   },
   modalView: {
     width: Dimensions.get("window").width - 100,
-    backgroundColor: "rgba(119, 119, 119, 0.7)",
+    backgroundColor: "rgba(76, 175, 80, 0.2)",
     borderRadius: 20,
     padding: 5,
     alignItems: "left",
   },
+  modalDescription: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    marginLeft: 10,
+  },
   modalTitle: { fontSize: 18, color: "#fff", marginBottom: 10 },
   modalCloseButton: {
     padding: 10,
-    backgroundColor: "#fff",
     borderRadius: 10,
     marginTop: 10,
   },
-  modalCloseButtonText: { color: "#000" },
+  modalCloseButtonText: { color: "#fff", fontWeight: "400" },
 });
 
 export default FlowerPot;

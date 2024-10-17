@@ -1,4 +1,3 @@
-// ProfileScreen.js
 import React, { useState, useEffect, useRef, useContext } from "react";
 import {
   View,
@@ -48,7 +47,15 @@ const ProfileScreen = ({ navigation }) => {
   // Options for dropdowns and devices
   const roomsOptions = ["1", "2", "3", "4", "5+"];
 
-  const occupantsOptions = ["1", "2", "3", "4", "5+"];
+  const occupantsOptions = [
+    "23",
+    "33",
+    "27",
+    "45",
+    "28",
+    "30",
+    "Press Info to get Prices for each state",
+  ];
 
   const deviceOptions = {
     kitchen: [
@@ -67,7 +74,7 @@ const ProfileScreen = ({ navigation }) => {
       "Freezer",
     ],
     livingroom: ["TV", "Gaming Console", "Sound System", "Air Conditioner"],
-    general: ["Lights", "Smart Thermostat", "Security System", "Wi-Fi Router"],
+    BedRoom: ["Lights", "Television", "Ceiling Fan", "Computer"],
   };
 
   const roomIcons = {
@@ -75,7 +82,7 @@ const ProfileScreen = ({ navigation }) => {
     laundry: "local-laundry-service",
     garage: "garage",
     livingroom: "weekend",
-    general: "home",
+    BedRoom: "home",
   };
 
   const saveData = async () => {
@@ -235,6 +242,17 @@ const ProfileScreen = ({ navigation }) => {
     }));
     setShowEnergySourceModal(false);
   };
+  const powerPrices = [
+    { state: "ACT", price: "23.67c/kWh" },
+    { state: "NSW", price: "33.84c/kWh" },
+    { state: "Northern Territory", price: "27.37c/kWh" },
+    { state: "QLD", price: "30.21c/kWh" },
+    { state: "SA", price: "45.54c/kWh" },
+    { state: "Tasmania", price: "28.12c/kWh" },
+    { state: "Victoria", price: "28.45c/kWh" },
+    { state: "Western Australia", price: "30.06c/kWh" },
+  ];
+  console.log(powerPrices);
 
   return (
     <Background style={{ flex: 1 }}>
@@ -253,16 +271,8 @@ const ProfileScreen = ({ navigation }) => {
 
         <View style={styles.formSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Household Details</Text>
-            <TouchableOpacity
-              onPress={() =>
-                handleInfoPress([
-                  "Enter the Number of Rooms and occuptants to each to help us understand your Home",
-                  "Please specify the number of rooms in your household.",
-                  "Please specify the number of occupants.",
-                ])
-              }
-            >
+            <Text style={styles.sectionTitle}>Enter Energy price</Text>
+            <TouchableOpacity onPress={() => handleInfoPress(powerPrices)}>
               <Ionicons
                 name="information-circle-outline"
                 size={20}
@@ -286,11 +296,14 @@ const ProfileScreen = ({ navigation }) => {
             style={styles.inputContainer}
             onPress={() => setShowOccupantsModal(true)}
           >
-            <Icon name="person" size={24} color="#fff" style={styles.icon} />
+            <Icon
+              name="monetization-on"
+              size={24}
+              color="#fff"
+              style={styles.icon}
+            />
             <Text style={styles.pickerText}>
-              {profileData.occupants
-                ? profileData.occupants
-                : "Select Occupants"}
+              {profileData.occupants ? profileData.occupants : "Select State"}
             </Text>
             <Icon name="keyboard-arrow-down" size={24} color="#fff" />
           </TouchableOpacity>
@@ -318,7 +331,7 @@ const ProfileScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          {["general", "livingroom", "kitchen", "laundry", "garage"].map(
+          {["BedRoom", "livingroom", "kitchen", "laundry", "garage"].map(
             (area) => (
               <TouchableOpacity
                 key={area}
@@ -438,21 +451,27 @@ const ProfileScreen = ({ navigation }) => {
             <TouchableWithoutFeedback>
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>Information</Text>
-                {Array.isArray(infoText) ? (
+                {Array.isArray(infoText) && infoText[0]?.state ? (
+                  infoText.map((item, index) => (
+                    <View key={index} style={styles.priceRow}>
+                      <Text style={styles.stateText}>{item.state}</Text>
+                      <Text style={styles.priceText}>{item.price}</Text>
+                    </View>
+                  ))
+                ) : Array.isArray(infoText) ? (
                   infoText.map((point, index) => (
-                    <View key={index} style={styles.bulletPointContainer}>
-                      <Text style={styles.bulletPoint}>•</Text>
-                      <Text style={styles.bulletText}>{point}</Text>
+                    <View key={index} style={styles.bulletText}>
+                      <Text style={styles.bulletText}>• {point}</Text>
                     </View>
                   ))
                 ) : (
-                  <Text style={styles.modalItemText}>{infoText}</Text>
+                  <Text>No data available</Text>
                 )}
                 <TouchableOpacity
-                  style={styles.saveButton}
+                  style={styles.buttonCloseText}
                   onPress={() => setShowInfoModal(false)}
                 >
-                  <Text style={styles.buttonText}>Close</Text>
+                  <Text style={styles.buttonCloseText}>Close</Text>
                 </TouchableOpacity>
               </View>
             </TouchableWithoutFeedback>
@@ -509,7 +528,7 @@ const styles = StyleSheet.create({
     color: "#fff", // Bullet color
   },
   bulletText: {
-    fontSize: 16, // Text size
+    fontSize: 14, // Text size
     color: "#fff", // Text color
   },
 
@@ -617,6 +636,32 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     marginBottom: 10,
+  },
+  priceRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginBottom: 10,
+  },
+  stateText: {
+    fontSize: 16,
+    color: "white",
+  },
+  priceText: {
+    fontSize: 16,
+    color: "white",
+  },
+  bulletText: {
+    fontSize: 16,
+    marginVertical: 5,
+    color: "white",
+  },
+  buttonCloseText: {
+    fontSize: 18,
+    color: "pink",
+    textAlign: "left",
+    marginLeft: 113,
+    marginTop: 5,
   },
 });
 
