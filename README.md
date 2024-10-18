@@ -56,7 +56,7 @@ The FlowerOne screen provides a visual representation of household energy usage,
 ---
 
 ### 4. **Flowerpot Detailed Dashboard**
-<img src="FlowerPot-min.PNG" alt="Flowerpot Dashboard" width="400">
+<img src="home.jpg" alt="Flowerpot Dashboard" width="400">
 
 This detailed dashboard allows users to monitor individual room energy usage, track live energy data, and explore further energy statistics for each appliance or space in the household.
 
