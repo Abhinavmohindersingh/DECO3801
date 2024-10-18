@@ -89,6 +89,13 @@ This screen predicts the usage in weekly overview or daily breakdown, also shows
 
 ---
 
+### 8. **Budget Screen**
+<img src="budget.jpg" alt="Bill Estimation Screen" width="400">
+
+This screen allows user to set their budget and billing cycle. 
+
+---
+
 ## Installation
 
 ### Prerequisites
