@@ -82,6 +82,13 @@ The bill estimation screen helps users predict their monthly energy bills based 
 
 ---
 
+### 7. **PredictViz Screen**
+<img src="predict.jpg" alt="Bill Estimation Screen" width="400">
+
+This screen predicts the usage in weekly overview or daily breakdown, also shows the actual spending and predicted spending cost.
+
+---
+
 ## Installation
 
 ### Prerequisites
