@@ -63,20 +63,19 @@ This detailed dashboard allows users to monitor individual room energy usage, tr
 ---
 
 ### 5. **Live Energy Usage**
-<img src="LiveUsage-min.PNG" alt="Live Energy Usage" width="400">
+<img src="overallusage.jpg" alt="Live Energy Usage" width="400">
 
 The live energy usage screen captures real-time data for all connected devices, showing users the exact energy being consumed at any given moment within the household.
 
 ---
 
-### 7. **Energy Usage Screen**
-<img src="EnergyUsage-min.PNG" alt="Energy Usage Screen" width="400">
+### 7. **Individual Usage Screen**
+<img src="roomusage.jpg" alt="Energy Usage Screen" width="400">
 
-The energy usage screen provides detailed insights into daily, weekly, and monthly energy consumption. Users can analyze their energy usage patterns and make informed decisions to optimize energy savings.
-
+The energy usage for each room, user are allowed to add devices and able to see their status. 
 ---
 
-### 6. **Bill Estimation Screen**
+### 6. **Spendings Screen**
 <img src="SpendingScreen-min.PNG" alt="Bill Estimation Screen" width="400">
 
 The bill estimation screen helps users predict their monthly energy bills based on the real-time and historical energy usage trends tracked by the app.
