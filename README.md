@@ -42,7 +42,7 @@ The login screen allows users to securely sign in to the Windash app using their
 ---
 
 ### 2. **Profile Setup Screen**
-<img src="ProfileScreen-min.PNG" alt="Profile Setup Screen" width="400">
+<img src="image_2024-10-18_100014980.png" alt="Profile Setup Screen" width="400">
 
 The profile setup screen helps users define their household environment by selecting the number of rooms, household type (apartment/condo), and energy sources (solar, oil, electricity).
 
