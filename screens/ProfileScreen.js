@@ -74,7 +74,7 @@ const ProfileScreen = ({ navigation }) => {
       "Freezer",
     ],
     livingroom: ["TV", "Gaming Console", "Sound System", "Air Conditioner"],
-    BedRoom: ["Lights", "Television", "Ceiling Fan", "Computer"],
+    bedRoom: ["Lights", "Television", "Ceiling Fan", "Computer"],
   };
 
   const roomIcons = {
@@ -82,7 +82,7 @@ const ProfileScreen = ({ navigation }) => {
     laundry: "local-laundry-service",
     garage: "garage",
     livingroom: "weekend",
-    BedRoom: "home",
+    bedRoom: "home",
   };
 
   const saveData = async () => {
@@ -331,7 +331,7 @@ const ProfileScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          {["BedRoom", "livingroom", "kitchen", "laundry", "garage"].map(
+          {["bedRoom", "livingroom", "kitchen", "laundry", "garage"].map(
             (area) => (
               <TouchableOpacity
                 key={area}

@@ -190,7 +190,7 @@ const FlowerPot = () => {
           </View>
 
           <TouchableOpacity
-            onPress={() => navigation.navigate("AccountScreen")}
+            onPress={() => navigation.navigate("ProfileScreen")}
           >
             <FontAwesome name="user-circle" size={50} color="white" />
           </TouchableOpacity>
@@ -227,15 +227,7 @@ const FlowerPot = () => {
 
         <View style={styles.roomIconsContainer}>
           <View style={styles.roomIcons}>
-            <View style={styles.iconWrapper}>
-              <TouchableOpacity
-                onPress={() => navigation.navigate("RoomsUsage")}
-              >
-                <Icon name="bed-outline" size={40} color="#fff" />
-              </TouchableOpacity>
-
-              <Text style={styles.iconLabel}>Rooms</Text>
-            </View>
+            <View style={styles.iconWrapper}></View>
             <View style={styles.iconWrapper}>
               <TouchableOpacity
                 onPress={() => navigation.navigate("KitchenUsage")}
@@ -302,19 +294,7 @@ const FlowerPot = () => {
           style={styles.modalOverlay}
           activeOpacity={1}
           onPressOut={() => setModalVisible(false)}
-        >
-          <View style={styles.modalView}>
-            <Text style={styles.modalDescription}>
-              Your current energy usage is {totalConsumption} kWh.
-            </Text>
-            <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={styles.modalCloseButtonText}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
+        ></TouchableOpacity>
       </Modal>
     </ImageBackground>
   );

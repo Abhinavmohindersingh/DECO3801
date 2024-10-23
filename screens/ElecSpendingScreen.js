@@ -23,7 +23,7 @@ const ElecSpendingScreen = () => {
 
   // Define fixed width per data point (e.g., 60 pixels)
   const POINT_WIDTH = 60;
-  const chartHeight = 300; // Increased from 220 to 300
+  const chartHeight = 200; // Increased from 220 to 300
   // You can adjust the chartHeight as per your design requirements
 
   // Define the total number of hours from 4 AM to 12 AM (midnight)
@@ -34,20 +34,25 @@ const ElecSpendingScreen = () => {
    */
   const generateLabels = () => {
     const labels = [];
-    for (let i = 4; i <= 24; i++) {
+    const currentHour = new Date().getHours(); // Get the current hour in 24-hour format
+
+    for (let i = 0; i <= currentHour; i++) {
+      // Loop from 12 AM (0) to current time
       let hour = i;
       let ampm = "AM";
+
       if (hour === 0) {
-        hour = 12;
-        ampm = "AM";
+        hour = 12; // 12 AM
       } else if (hour === 12) {
-        ampm = "PM";
+        ampm = "PM"; // 12 PM
       } else if (hour > 12) {
         hour -= 12;
-        ampm = "PM";
+        ampm = "PM"; // Convert to 12-hour format with PM
       }
-      labels.push(`${hour}:00 ${ampm}`); // Includes minutes
+
+      labels.push(`${hour}:00 ${ampm}`); // Add label to the array
     }
+
     return labels;
   };
 
@@ -99,7 +104,7 @@ const ElecSpendingScreen = () => {
     datasets: [
       {
         data: paddedData,
-        color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`, // Line color
+        color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`, // Line coor
         strokeWidth: 2, // Line thickness
       },
     ],
@@ -290,12 +295,10 @@ const ElecSpendingScreen = () => {
                 <Text style={styles.boldText}>Total Consumption:</Text>{" "}
                 {totalConsumption.toFixed(2)} kWh
               </Text>
+
               <Text style={styles.insightText}>
                 <Text style={styles.boldText}>Peak Consumption:</Text>{" "}
                 {peakConsumption.toFixed(2)} kWh
-              </Text>
-              <Text style={styles.insightText}>
-                <Text style={styles.boldText}>Peak Period:</Text> {peakPeriod}
               </Text>
             </>
           ) : (
@@ -325,6 +328,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     flexGrow: 1, // Ensures content expands to fill the ScrollView
     paddingTop: 60,
+    width: "100%",
     paddingHorizontal: 20,
     paddingBottom: 20,
   },

@@ -1,123 +1,143 @@
+// ElecSpendingScreen.js
+
 import React, { useContext, useMemo, useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
   StyleSheet,
+  Dimensions,
   ScrollView,
   TouchableOpacity,
   Animated,
 } from "react-native";
 import { LineChart } from "react-native-chart-kit";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { AppContext } from "../AppContext";
-import Background from "../components/Background";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
+import Background from "../components/Background"; // Ensure correct path
+import { useNavigation } from "@react-navigation/native"; // Correctly import useNavigation
 
 const SpendingScreen = () => {
-  const navigation = useNavigation();
-  const { profileData, consumptionHistory } = useContext(AppContext);
-  const occupants = parseFloat(profileData.occupants) || 1;
+  const navigation = useNavigation(); // Correctly use useNavigation
+  const { consumptionHistory } = useContext(AppContext);
+  const [tipVisible, setTipVisible] = useState(false); // State for showing tips
 
-  const [storedLimit, setStoredLimit] = useState(null);
-  const [storedCycle, setStoredCycle] = useState(null);
-  const [tipVisible, setTipVisible] = useState(false);
+  // Define fixed width per data point (e.g., 60 pixels)
+  const POINT_WIDTH = 60;
+  const chartHeight = 300; // Increased from 220 to 300
+  // You can adjust the chartHeight as per your design requirements
+
+  // Define the total number of hours from 4 AM to 12 AM (midnight)
+  const TOTAL_HOURS = 20;
+  const [occupants, setOccupants] = useState("");
 
   useEffect(() => {
-    const loadBudgetData = async () => {
+    const loadProfileData = async () => {
       try {
-        const savedLimit = await AsyncStorage.getItem("energyLimit");
-        const savedCycle = await AsyncStorage.getItem("billCycle");
-        if (savedLimit !== null) {
-          setStoredLimit(parseFloat(savedLimit));
-        }
-        if (savedCycle !== null) {
-          setStoredCycle(parseInt(savedCycle, 10));
+        const savedProfileData = await AsyncStorage.getItem("@profileData");
+        if (savedProfileData) {
+          const profile = JSON.parse(savedProfileData);
+          setOccupants(profile.occupants);
         }
       } catch (error) {
-        console.error("Error loading budget data from storage:", error);
+        console.error("Error loading profile data:", error);
       }
     };
-    loadBudgetData();
+
+    loadProfileData();
   }, []);
 
-  const POINT_WIDTH = 60;
-  const chartHeight = 300;
-  const TOTAL_HOURS = 20;
-
+  /**
+   * Generate fixed labels from 4 AM to 12 AM with minutes
+   */
   const generateLabels = () => {
     const labels = [];
-    for (let i = 4; i <= 24; i++) {
+    const currentHour = new Date().getHours(); // Get the current hour in 24-hour format
+
+    for (let i = 0; i <= currentHour; i++) {
+      // Loop from 12 AM (0) to current time
       let hour = i;
       let ampm = "AM";
+
       if (hour === 0) {
-        hour = 12;
-        ampm = "AM";
+        hour = 12; // 12 AM
       } else if (hour === 12) {
-        ampm = "PM";
+        ampm = "PM"; // 12 PM
       } else if (hour > 12) {
         hour -= 12;
-        ampm = "PM";
+        ampm = "PM"; // Convert to 12-hour format with PM
       }
-      labels.push(`${hour}:00 ${ampm}`);
+
+      labels.push(`${hour}:00 ${ampm}`); // Add label to the array
     }
+
     return labels;
   };
 
   const labels = generateLabels();
 
+  // Slice the last 20 data points (from 4 AM to 12 AM)
+  const data = consumptionHistory.slice(-TOTAL_HOURS);
+
+  /**
+   * Pad the data with zeros if there are fewer than 20 data points
+   * This ensures consistent spacing and alignment on the chart
+   */
+  // Calculate padded data and multiply by occupants
   const paddedData = useMemo(() => {
-    const data = consumptionHistory.slice(-TOTAL_HOURS);
     const padding = TOTAL_HOURS - data.length;
-    return padding > 0 ? Array(padding).fill(0).concat(data) : data;
-  }, [consumptionHistory]);
+    const scaledData = data.map((value) => value * (occupants / 100 || 1)); // Multiply by number of occupants
 
-  const spendingData = paddedData.map((consumption) =>
-    (consumption * occupants).toFixed(2)
-  );
+    if (padding > 0) {
+      const paddedArray = Array(padding).fill(0).concat(scaledData);
+      return paddedArray;
+    }
+    return scaledData;
+  }, [data, occupants]);
 
-  const { peakSpending, peakPeriod, averageSpending, totalSpending } =
+  // Calculate peak consumption and peak period using useMemo for optimization
+  const { peakConsumption, peakPeriod, averageConsumption, totalConsumption } =
     useMemo(() => {
-      if (spendingData.length === 0) {
+      if (consumptionHistory.length === 0) {
         return {
-          peakSpending: 0,
+          peakConsumption: 0,
           peakPeriod: "N/A",
-          averageSpending: 0,
-          totalSpending: 0,
+          averageConsumption: 0,
+          totalConsumption: 0,
         };
       }
 
-      const numericSpendingData = spendingData.map(Number);
-      const peakValue = Math.max(...numericSpendingData);
-      const peakIndex = numericSpendingData.indexOf(peakValue);
+      const peakValue = Math.max(...consumptionHistory);
+      const peakIndex = consumptionHistory.indexOf(peakValue);
       const peakTime = labels[peakIndex] || "N/A";
-      const total = numericSpendingData.reduce((a, b) => a + b, 0);
-      const average = total / numericSpendingData.length;
+      const total = consumptionHistory.reduce((a, b) => a + b, 0);
+      const average = total / consumptionHistory.length;
 
       return {
-        peakSpending: peakValue,
+        peakConsumption: peakValue,
         peakPeriod: peakTime,
-        averageSpending: average,
-        totalSpending: total,
+        averageConsumption: average,
+        totalConsumption: total,
       };
-    }, [spendingData, labels]);
+    }, [consumptionHistory, labels]);
 
   const chartData = {
     labels: labels,
     datasets: [
       {
-        data: spendingData,
-        color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-        strokeWidth: 2,
+        data: paddedData,
+        color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`, // Line coor
+        strokeWidth: 2, // Line thickness
       },
     ],
-    legend: ["Energy Spending ($)"],
+    legend: ["Energy Consumption (kWh)"],
   };
 
   const chartConfig = {
     backgroundGradientFrom: "#1F2A44",
     backgroundGradientTo: "#1F2A44",
-    decimalPlaces: 2,
+    decimalPlaces: 2, // Optional, defaults to 2dp
     color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
     labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
     style: {
@@ -128,13 +148,16 @@ const SpendingScreen = () => {
       strokeWidth: "2",
       stroke: "#FFD700",
     },
-    formatXLabel: (value) => value,
+    formatXLabel: (value) => value, // Show full time labels with minutes
     propsForBackgroundLines: {
       stroke: "#444C5E",
     },
   };
 
-  const ChartWithTooltip = ({ data, labels }) => {
+  /**
+   * Reusable ChartWithTooltip Component
+   */
+  const ChartWithTooltip = ({ data, labels, peakIndex }) => {
     const [tooltipVisible, setTooltipVisible] = useState(false);
     const [tooltipData, setTooltipData] = useState(null);
     const [tooltipPosition, setTooltipPosition] = useState({
@@ -143,9 +166,14 @@ const SpendingScreen = () => {
     });
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
+    /**
+     * Handles data point clicks to display tooltip
+     * @param {object} dataPoint - Data point information
+     */
     const handleDataPointClick = (dataPoint) => {
       const { x, y, index, value } = dataPoint;
 
+      // Set tooltip data and position
       setTooltipData({
         label: labels[index],
         value,
@@ -153,6 +181,7 @@ const SpendingScreen = () => {
       setTooltipPosition({ x, y });
       setTooltipVisible(true);
 
+      // Start fade-in animation
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 300,
@@ -162,6 +191,7 @@ const SpendingScreen = () => {
 
     useEffect(() => {
       if (!tooltipVisible) {
+        // Reset fadeAnim when tooltip is hidden
         fadeAnim.setValue(0);
       }
     }, [tooltipVisible, fadeAnim]);
@@ -170,8 +200,8 @@ const SpendingScreen = () => {
       <View style={styles.chartContainer}>
         <LineChart
           data={data}
-          width={TOTAL_HOURS * POINT_WIDTH}
-          height={chartHeight}
+          width={TOTAL_HOURS * POINT_WIDTH} // Dynamic width based on data points
+          height={chartHeight} // Increased chart height
           chartConfig={chartConfig}
           bezier
           style={styles.chartStyle}
@@ -179,21 +209,23 @@ const SpendingScreen = () => {
           fromZero={true}
         />
 
+        {/* Tooltip */}
         {tooltipVisible && tooltipData && (
           <Animated.View
             accessible={true}
-            accessibilityLabel={`${tooltipData.label}: $${tooltipData.value}`}
+            accessibilityLabel={`${tooltipData.label}: ${tooltipData.value} kilowatt-hours`}
             style={[
               styles.tooltip,
               {
-                left: tooltipPosition.x - 60,
-                top: tooltipPosition.y - 10,
+                left: tooltipPosition.x - 60, // Center the tooltip horizontally
+                top: tooltipPosition.y - 10, // Adjusted position for increased chart height
                 opacity: fadeAnim,
               },
             ]}
           >
             <Text style={styles.tooltipText}>{tooltipData.label}</Text>
-            <Text style={styles.tooltipValue}>${tooltipData.value}</Text>
+            <Text style={styles.tooltipValue}>{tooltipData.value} kWh</Text>
+            {/* Arrow */}
             <View style={styles.tooltipArrow} />
           </Animated.View>
         )}
@@ -201,22 +233,25 @@ const SpendingScreen = () => {
     );
   };
 
+  /**
+   * Renders the informational tip
+   */
   const renderEnergyInfo = () => (
     <View style={styles.tipContainer}>
       <Text style={styles.tipText}>
-        • The insights section summarizes key information: {"\n"}-{" "}
-        <Text style={styles.boldText}>Average Spending:</Text> Your average
-        energy expenditure over time. {"\n"}-{" "}
-        <Text style={styles.boldText}>Total Spending:</Text> The total amount
-        you've spent so far. {"\n"}-{" "}
-        <Text style={styles.boldText}>Peak Spending:</Text> The highest amount
-        spent in a single period.
+        This screen provides an overview of your energy spending. The chart
+        shows your spending over time, converted from your energy usage at a
+        rate of selected state in ProfileScreen. The insights section below
+        summarizes your average spending, total spending so far, and the period
+        during which your energy consumption was at its peak. You can also view
+        your current budget and how much you have left for the billing cycle.
       </Text>
     </View>
   );
 
   return (
     <Background>
+      {/* Back Button */}
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
@@ -225,20 +260,23 @@ const SpendingScreen = () => {
         <Icon name="arrow-left" size={24} color="#FFFFFF" />
       </TouchableOpacity>
 
+      {/* Scrollable Content */}
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Spending Overview</Text>
+          <Text style={styles.headerTitle}>Consumption Overview</Text>
           <View style={styles.currentTimeContainer}>
             <Icon name="clock-time-four" size={20} color="#FFD700" />
             <Text style={styles.currentTimeText}>
-              {labels[labels.length - 1] || "00:00"}
+              {labels.length > 0 ? labels[labels.length - 1] : "00:00 AM"}
             </Text>
           </View>
         </View>
 
+        {/* Chart Section */}
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Spending History ($)</Text>
-          {spendingData.length > 0 ? (
+          <Text style={styles.sectionTitle}>Spendings</Text>
+          {consumptionHistory.length > 0 ? (
             <ScrollView
               horizontal
               contentContainerStyle={{
@@ -247,60 +285,62 @@ const SpendingScreen = () => {
               }}
               showsHorizontalScrollIndicator={false}
             >
-              <ChartWithTooltip data={chartData} labels={labels} />
+              <ChartWithTooltip
+                data={chartData}
+                labels={labels}
+                peakIndex={
+                  consumptionHistory.length > 0
+                    ? consumptionHistory.indexOf(peakConsumption)
+                    : -1
+                }
+              />
             </ScrollView>
           ) : (
             <View style={styles.noDataContainer}>
               <Icon name="alert-circle-outline" size={50} color="#FFD700" />
-              <Text style={styles.noDataText}>No spending data available.</Text>
+              <Text style={styles.noDataText}>
+                No consumption data available.
+              </Text>
             </View>
           )}
         </View>
 
+        {/* Insights Section */}
         <View style={styles.insightsContainer}>
           <Text style={styles.insightsTitle}>Insights</Text>
-          {spendingData.length > 0 ? (
+          {consumptionHistory.length > 0 ? (
             <>
               <Text style={styles.insightText}>
-                <Text style={styles.boldText}>Total Spending:</Text> $
-                {totalSpending.toFixed(2)}
+                <Text style={styles.boldText}>Average Consumption:</Text>{" "}
+                {averageConsumption.toFixed(2)} kWh
               </Text>
               <Text style={styles.insightText}>
-                <Text style={styles.boldText}>Peak Spending:</Text> $
-                {peakSpending.toFixed(2)}
-              </Text>
-              <Text style={styles.insightText}>
-                <Text style={styles.boldText}>Average Spending:</Text> $
-                {averageSpending.toFixed(2)}
+                <Text style={styles.boldText}>Total Consumption:</Text>{" "}
+                {totalConsumption.toFixed(2)} kWh
               </Text>
 
-              {storedLimit && storedCycle && (
-                <>
-                  <Text style={styles.insightText}>
-                    <Text style={styles.boldText}>Energy Limit:</Text> $
-                    {storedLimit.toFixed(2)}
-                  </Text>
-                  <Text style={styles.insightText}>
-                    <Text style={styles.boldText}>Billing Cycle:</Text>{" "}
-                    {storedCycle} weeks
-                  </Text>
-                </>
-              )}
+              <Text style={styles.insightText}>
+                <Text style={styles.boldText}>Money Spent Today:</Text>
+                {" $"}
+                {((occupants * totalConsumption) / 100).toFixed(2)}
+              </Text>
             </>
           ) : (
             <Text style={styles.insightText}>No data to display insights.</Text>
           )}
         </View>
 
+        {/* Info Button */}
         <TouchableOpacity
           style={styles.tipButton}
           onPress={() => setTipVisible(!tipVisible)}
           accessibilityLabel="Toggle Info"
         >
           <Icon name="lightbulb-on" size={20} color="#FFF" />
-          <Text style={styles.tipButtonText}>Information</Text>
+          <Text style={styles.tipButtonText}>Info</Text>
         </TouchableOpacity>
 
+        {/* Render Energy Tip if visible */}
         {tipVisible && renderEnergyInfo()}
       </ScrollView>
     </Background>
@@ -309,11 +349,12 @@ const SpendingScreen = () => {
 
 const styles = StyleSheet.create({
   scrollContainer: {
-    flexGrow: 1,
+    marginLeft: 10,
+    flexGrow: 1, // Ensures content expands to fill the ScrollView
     paddingTop: 60,
+    width: "100%",
     paddingHorizontal: 20,
     paddingBottom: 20,
-    marginLeft: 15,
   },
   backButton: {
     position: "absolute",
@@ -407,7 +448,8 @@ const styles = StyleSheet.create({
   },
   noDataContainer: {
     alignItems: "center",
-    marginBottom: 30,
+    justifyContent: "center",
+    height: 180,
   },
   noDataText: {
     marginTop: 10,
@@ -438,8 +480,8 @@ const styles = StyleSheet.create({
   },
   tooltip: {
     position: "absolute",
-    width: 100, // Reduced width for smaller tooltip
-    padding: 8, // Reduced padding for smaller tooltip
+    width: 120, // Reduced width for smaller tooltip
+    padding: 6, // Reduced padding for smaller tooltip
     backgroundColor: "rgba(76, 175, 80, 0.7)", // 0.7 transparency green
     borderRadius: 8,
     alignItems: "center",
@@ -454,7 +496,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "600",
-    marginTop: 4, // Reduced margin for compactness
+    marginTop: 2, // Reduced margin for compactness
   },
   tooltipArrow: {
     position: "absolute",

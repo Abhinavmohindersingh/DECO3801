@@ -96,6 +96,13 @@ const LoginScreen = () => {
     }
   };
 
+  const handleNavigateToProfile = () => {
+    // Set the login state here if needed
+    setIsLogin(true);
+    // Navigate to the ProfileScreen
+    navigation.navigate("ProfileScreen"); // Ensure "ProfileScreen" matches your navigator setup
+  };
+
   const handleSignUp = async () => {
     if (!username || !password || !confirmPassword) {
       alert("Please fill in all fields.");
@@ -139,7 +146,7 @@ const LoginScreen = () => {
       <View style={styles.container}>
         <View style={styles.toggleContainer}>
           <TouchableOpacity
-            onPress={() => setIsLogin(true)}
+            onPress={handleNavigateToProfile}
             style={[styles.toggleButton, isLogin && styles.activeButton]}
           >
             <Text style={styles.toggleText}>Login</Text>
@@ -202,7 +209,7 @@ const LoginScreen = () => {
           bgcolor="white"
           textcolor="Black"
           buttonLabel={isLogin ? "Login" : "Signup"}
-          onPress={isLogin ? handleLogin : handleSignUp}
+          onPress={handleNavigateToProfile}
         />
 
         {isLogin && (

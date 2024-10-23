@@ -64,7 +64,7 @@ const PredictViz = ({ navigation }) => {
     labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     datasets: [
       {
-        data: [20, 40, 60, 80, 40, 20, 100],
+        data: [60, 40, 60, 80, 60, 120, 100],
         color: () => `rgba(255, 99, 132, 1)`, // Line color
         strokeWidth: 2, // Line thickness
       },
@@ -76,7 +76,7 @@ const PredictViz = ({ navigation }) => {
     labels: ["12AM", "3AM", "6AM", "9AM", "12PM", "3PM", "6PM", "9PM"],
     datasets: [
       {
-        data: [1, 5, 2, 4, 6, 7, 5, 3], // 8 data points corresponding to 8 labels
+        data: [1, 1, 2, 4, 4, 6, 7, 3], // 8 data points corresponding to 8 labels
         color: () => `"rgb(0, 128, 0)"`, // Line color
         strokeWidth: 2, // Line thickness
       },

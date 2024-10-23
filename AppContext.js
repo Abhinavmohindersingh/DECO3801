@@ -36,6 +36,7 @@ export const AppProvider = ({ children }) => {
   // Keys for AsyncStorage
   const PROFILE_DATA_KEY = "@profileData";
   const CONSUMPTION_HISTORY_KEY = "@consumptionHistory";
+  const CONSUMPTION_KITCHEN_KEY = "@consumptionKitchen"; // Define this key
 
   // References to manage intervals
   const sumReadings = useRef(0); // Cumulative sum of readings
@@ -94,6 +95,32 @@ export const AppProvider = ({ children }) => {
       console.error("Failed to save consumption history.", e);
     }
   };
+
+  // Function to trigger periodic server communication
+  useEffect(() => {
+    // Set an interval to send data to the server every 10 seconds (adjust as needed)
+    const serverCommInterval = setInterval(() => {
+      const averageConsumption = (
+        sumReadings.current / (countReadings.current || 1)
+      ).toFixed(2);
+      sendTotalConsumptionToServer(averageConsumption);
+    }, 100); // Every 10 seconds
+
+    return () => clearInterval(serverCommInterval); // Clear interval on unmount
+  }, []);
+
+  // Function to trigger periodic server communication
+  useEffect(() => {
+    // Set an interval to send data to the server every 10 seconds (adjust as needed)
+    const serverCommInterval = setInterval(() => {
+      const averageConsumption = (
+        sumReadings.current / (countReadings.current || 1)
+      ).toFixed(2);
+      sendTotalConsumptionToServer(averageConsumption);
+    }, 10000); // Every 10 seconds
+
+    return () => clearInterval(serverCommInterval); // Clear interval on unmount
+  }, []);
 
   // Load consumption history from AsyncStorage
   const loadConsumptionHistory = async () => {
@@ -199,7 +226,7 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const hourlyInterval = setInterval(() => {
       calculateHourlyAverage();
-    }, 10000); // Every hour (3600000 ms)
+    }, 3600000); // Every hour (3600000 ms)
 
     return () => clearInterval(hourlyInterval); // Cleanup on unmount
   }, []);
@@ -211,6 +238,8 @@ export const AppProvider = ({ children }) => {
   // Function to send total consumption to the server
   const sendTotalConsumptionToServer = async (average) => {
     try {
+      console.log("Dsendingnow", dataToSend);
+
       // Get current time in 24-hour format: HH:mm:ss
       const currentTime = new Date().toLocaleTimeString("en-GB", {
         hour: "2-digit",

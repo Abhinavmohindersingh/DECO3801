@@ -126,8 +126,11 @@ const LiveUsage = () => {
 
     return () => clearInterval(hourlyIntervalRef.current); // Cleanup on unmount
   }, [loading, setConsumptionHistory]);
+  // Log when sending data to the server
   const sendTotalConsumptionToServer = async (total) => {
     try {
+      console.log("Preparing to send total consumption data to the server...");
+
       // Get current time in 24-hour format: YYYY-MM-DD HH:mm:ss
       const currentTime = new Date()
         .toLocaleString("en-GB", {
@@ -138,31 +141,30 @@ const LiveUsage = () => {
         })
         .replace(",", ""); // Remove the comma between date and time
 
-      // Prepare the data to be sent
       const dataToSend = {
-        current_time: currentTime, // current timestamp in 24-hour format
-        Global_active_power: total, // total consumption value
+        current_time: currentTime,
+        Global_active_power: total,
       };
 
-      console.log(
-        "JSON format being sent to the server:",
-        JSON.stringify(dataToSend, null, 2)
-      ); // Log the JSON format
+      console.log("Data to send:", dataToSend);
 
-      // Send the data to the server
       const response = await fetch("http://34.87.202.191:4000/api", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(dataToSend), // Send the JSON data
+        body: JSON.stringify(dataToSend),
       });
 
-      // Get and log the server's response
+      if (!response.ok) {
+        console.error(`Error: Server responded with status ${response.status}`);
+        throw new Error(`Server responded with status ${response.status}`);
+      }
+
       const result = await response.json();
       console.log("Server response:", result);
     } catch (error) {
-      console.error("Error sending data to server:", error); // Log any errors
+      console.error("Error sending total consumption to server:", error);
     }
   };
 
@@ -239,12 +241,9 @@ const LiveUsage = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const savedProfileData = await AsyncStorage.getItem(PROFILE_DATA_KEY);
         const savedConsumptionHistory = await AsyncStorage.getItem(
-          CONSUMPTION_HISTORY_KEY
+          consumptionHistory
         );
-        const savedEnergyLimit = await AsyncStorage.getItem(ENERGY_LIMIT_KEY);
-        const savedBillingCycle = await AsyncStorage.getItem(BILL_CYCLE_KEY);
 
         const savedKitchenConsumption = await AsyncStorage.getItem(
           CONSUMPTION_KITCHEN_KEY
@@ -260,13 +259,13 @@ const LiveUsage = () => {
         );
 
         if (savedProfileData) {
-          setProfileData(JSON.parse(savedProfileData));
+          savedProfileData(JSON.parse(savedProfileData));
         }
         if (savedConsumptionHistory) {
           setConsumptionHistory(JSON.parse(savedConsumptionHistory));
         }
         if (savedEnergyLimit) {
-          setEnergyLimit(parseFloat(savedEnergyLimit));
+          savedEnergyLimit(parseFloat(savedEnergyLimit));
         }
         if (savedBillingCycle) {
           setBillingCycle(parseInt(savedBillingCycle, 10));
@@ -274,16 +273,16 @@ const LiveUsage = () => {
 
         // Load and set total consumption values
         if (savedKitchenConsumption) {
-          setTotalConsumptionKitchen(parseFloat(savedKitchenConsumption));
+          totalConsumptionKitchen(parseFloat(savedKitchenConsumption));
         }
         if (savedLivingConsumption) {
-          setTotalConsumptionLiving(parseFloat(savedLivingConsumption));
+          totalConsumptionLiving(parseFloat(savedLivingConsumption));
         }
         if (savedLaundryConsumption) {
-          setTotalConsumptionLaundry(parseFloat(savedLaundryConsumption));
+          totalConsumptionLaundry(parseFloat(savedLaundryConsumption));
         }
         if (savedGarageConsumption) {
-          setTotalConsumptionGarage(parseFloat(savedGarageConsumption));
+          totalConsumptionGarage(parseFloat(savedGarageConsumption));
         }
       } catch (e) {
         console.error("Failed to load data.", e);

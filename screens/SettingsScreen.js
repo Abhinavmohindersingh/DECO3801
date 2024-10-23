@@ -6,6 +6,7 @@ import {
   Text,
   Switch,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   Modal,
   TextInput,
   Alert,
@@ -19,6 +20,8 @@ const SettingsScreen = ({ navigation }) => {
   const [personalInfoVisible, setPersonalInfoVisible] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showCustomerSupport, setShowCustomerSupport] = useState(false);
 
   const handleSavePersonalInfo = () => {
     if (name === "" || email === "") {
@@ -28,6 +31,24 @@ const SettingsScreen = ({ navigation }) => {
       Alert.alert("Success", "Your personal details have been updated!");
       setPersonalInfoVisible(false);
     }
+  };
+
+  const handlePress = () => {
+    navigation.navigate("AccountScreen");
+  };
+
+  const showAlertCS = (title, message) => {
+    Alert.alert(title, message, [
+      {
+        text: "For customer support, please send your enquiries to info@windash.com, someone will be able to help within 3 bussiness day",
+      },
+    ]);
+  };
+  const showAlertfaq = (title, message) => {
+    Alert.alert(title, message, [{ text: "OK" }]);
+  };
+  const showAlertPP = (title, message) => {
+    Alert.alert(title, message, [{ text: "OK" }]);
   };
 
   return (
@@ -59,7 +80,7 @@ const SettingsScreen = ({ navigation }) => {
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Personal Information</Text>
-            <TouchableOpacity onPress={() => setPersonalInfoVisible(true)}>
+            <TouchableOpacity onPress={() => handlePress()}>
               <Text style={styles.link}>Edit Personal Details</Text>
             </TouchableOpacity>
           </View>
@@ -83,21 +104,113 @@ const SettingsScreen = ({ navigation }) => {
                 /* Add action to contact support */
               }}
             >
-              <Text style={styles.link}>Customer Support</Text>
+              <TouchableOpacity onPress={() => setShowCustomerSupport(true)}>
+                <Text style={styles.link}>Customer Support</Text>
+              </TouchableOpacity>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
-                /* Navigate to FAQs screen */
+                showAlertCS();
               }}
             >
-              <Text style={styles.link}>FAQs</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                /* Navigate to Privacy Policy screen */
-              }}
-            >
-              <Text style={styles.link}>Privacy Policy</Text>
+              <TouchableOpacity onPress={() => setShowPrivacyPolicy(true)}>
+                <Text style={styles.link}>Privacy Policy</Text>
+              </TouchableOpacity>
+
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={showCustomerSupport}
+                onRequestClose={() => setShowCustomerSupport(false)}
+              >
+                <TouchableWithoutFeedback
+                  onPress={() => setShowCustomerSupport(false)}
+                >
+                  <View style={styles.modalContainer}>
+                    <View style={styles.modalView}>
+                      <Text style={styles.modalTitle}>Customer Support</Text>
+                      <Text style={styles.modalText}>
+                        For customer support, please send your enquiries to
+                        info@windash.com. Someone will be able to help within 3
+                        business days.
+                      </Text>
+                      <TouchableOpacity
+                        style={[styles.button, { alignItems: "flex-start" }]}
+                        onPress={() => setShowCustomerSupport(false)}
+                      >
+                        <Text style={[styles.buttonText, { color: "pink" }]}>
+                          Close
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </TouchableWithoutFeedback>
+              </Modal>
+
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={showPrivacyPolicy}
+                onRequestClose={() => setShowPrivacyPolicy(false)}
+              >
+                <TouchableWithoutFeedback
+                  onPress={() => setShowPrivacyPolicy(false)}
+                >
+                  <View style={styles.modalContainer}>
+                    <View style={styles.modalView}>
+                      <Text style={styles.modalTitle}>Privacy Policy</Text>
+                      <ScrollView>
+                        <Text style={styles.modalText}>
+                          **Privacy Policy**{"\n"}
+                          **Effective Date: 15 October, 2024**{"\n"}
+                          {"\n"}
+                          At WINDASH, we are committed to protecting your
+                          privacy. This Privacy Policy explains how we collect,
+                          use, and disclose your personal information.{"\n"}
+                          {"\n"}
+                          **1. Information We Collect:**{"\n"}- Personal
+                          Information: Name, email address, and phone number.
+                          {"\n"}- Usage Data: Information about your
+                          interactions with our app, including the pages you
+                          visit and the features you use.{"\n"}
+                          {"\n"}
+                          **2. How We Use Your Information:**{"\n"}- To provide
+                          and maintain our services.{"\n"}- To notify you about
+                          changes to our services.{"\n"}- To provide customer
+                          support.{"\n"}
+                          {"\n"}
+                          **3. Sharing Your Information:**{"\n"}- We do not
+                          share your personal information with third parties
+                          except to comply with legal obligations.{"\n"}
+                          {"\n"}
+                          **4. Data Security:**{"\n"}- We use industry-standard
+                          security measures to protect your information.{"\n"}
+                          {"\n"}
+                          **5. Changes to This Policy:**{"\n"}- We may update
+                          our Privacy Policy from time to time. We will notify
+                          you of any changes by posting the new Privacy Policy
+                          on this page.{"\n"}
+                          {"\n"}
+                          **Contact Us:**{"\n"}
+                          If you have any questions about this Privacy Policy,
+                          please contact us at support@windash.com.{"\n"}
+                          {"\n"}
+                          **Disclaimer:** This is a fake privacy policy for
+                          demonstration purposes only.
+                        </Text>
+                      </ScrollView>
+                      <TouchableOpacity
+                        style={[styles.button, { alignItems: "flex-start" }]}
+                        onPress={() => setShowPrivacyPolicy(false)}
+                      >
+                        <Text style={[styles.buttonText, { color: "pink" }]}>
+                          Close
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </TouchableWithoutFeedback>
+              </Modal>
             </TouchableOpacity>
           </View>
           <View style={styles.separator} />
@@ -203,6 +316,12 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
   },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
   modalView: {
     margin: 20,
     backgroundColor: "#1F2A44",
@@ -210,14 +329,14 @@ const styles = StyleSheet.create({
     padding: 35,
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+    justifyContent: "center", // Added for centering
+    alignSelf: "center", // Added for centering
   },
+
   modalTitle: {
     fontSize: 24, // Increased font size
     fontWeight: "bold",
@@ -283,6 +402,9 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: "white",
     fontSize: 30,
+  },
+  modalText: {
+    color: "white",
   },
 });
 

@@ -15,6 +15,7 @@ import {
   Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons"; // Import Ionicons for information icon
+import { useFocusEffect } from "@react-navigation/native"; // Import useFocusEffect
 
 import Background from "../components/Background";
 import Icon from "react-native-vector-icons/MaterialIcons";
@@ -74,7 +75,7 @@ const AccountScreen = ({ navigation }) => {
       "Freezer",
     ],
     livingroom: ["TV", "Gaming Console", "Sound System", "Air Conditioner"],
-    BedRoom: ["Lights", "Television", "Ceiling Fan", "Computer"],
+    bedRoom: ["TV", "Fan", "Lamp", "Ac"],
   };
 
   const roomIcons = {
@@ -82,9 +83,25 @@ const AccountScreen = ({ navigation }) => {
     laundry: "local-laundry-service",
     garage: "garage",
     livingroom: "weekend",
-    BedRoom: "home",
+    bedRoom: "home",
   };
-
+  useFocusEffect(
+    React.useCallback(() => {
+      // Reset or clear the profile data state
+      setProfileData({
+        rooms: "",
+        occupants: "",
+        roomNames: [],
+        devices: {
+          kitchen: [],
+          laundry: [],
+          garage: [],
+          livingroom: [],
+          general: [],
+        },
+      });
+    }, [setProfileData])
+  );
   const saveData = async () => {
     try {
       await AsyncStorage.setItem("profileData", JSON.stringify(profileData));
@@ -331,7 +348,7 @@ const AccountScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          {["BedRoom", "livingroom", "kitchen", "laundry", "garage"].map(
+          {["bedRoom", "livingroom", "kitchen", "laundry", "garage"].map(
             (area) => (
               <TouchableOpacity
                 key={area}

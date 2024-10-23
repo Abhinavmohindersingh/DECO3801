@@ -34,7 +34,7 @@ const App = () => {
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           {/* <Stack.Screen name="FlowerOne" component={FlowerOne} /> */}
-          {/* <Stack.Screen name="LoginScreen" component={LoginScreen} /> */}
+          <Stack.Screen name="LoginScreen" component={LoginScreen} />
 
           <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
           <Stack.Screen name="FlowerPot" component={FlowerPot} />

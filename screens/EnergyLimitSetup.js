@@ -125,19 +125,8 @@ const EnergyLimitSetup = ({ navigation }) => {
             </TouchableOpacity>
 
             <View style={styles.contentContainer}>
-              <Text style={styles.title}>Set Your Energy Budget</Text>
-
               {storedLimit && storedCycle && (
-                <View style={styles.currentLimitContainer}>
-                  <Text style={styles.currentLimitLabel}>Current Budget:</Text>
-                  <Text style={styles.currentLimitValue}>
-                    $
-                    {(
-                      parseFloat(storedLimit) / parseFloat(storedCycle)
-                    ).toFixed(2)}{" "}
-                    per week
-                  </Text>
-                </View>
+                <View style={styles.currentLimitContainer}></View>
               )}
 
               {/* Display occupants from AppContext */}
@@ -319,7 +308,7 @@ const styles = StyleSheet.create({
   tipButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(76, 175, 80, 0.2)",
+    backgroundColor: "rgba(76, 175, 80, 0.7)",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 20,

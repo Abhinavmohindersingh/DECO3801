@@ -120,19 +120,6 @@ const EnergyLimit = ({ navigation }) => {
             <View style={styles.contentContainer}>
               <Text style={styles.title}>Set Your Energy Budget</Text>
 
-              {storedLimit && storedCycle && (
-                <View style={styles.currentLimitContainer}>
-                  <Text style={styles.currentLimitLabel}>Current Budget:</Text>
-                  <Text style={styles.currentLimitValue}>
-                    $
-                    {(
-                      parseFloat(storedLimit) / parseFloat(storedCycle)
-                    ).toFixed(2)}{" "}
-                    per week
-                  </Text>
-                </View>
-              )}
-
               {/* Display occupants from AppContext */}
               <View style={styles.occupantsContainer}>
                 <Text style={styles.heading}>Price in cents/hour:</Text>
