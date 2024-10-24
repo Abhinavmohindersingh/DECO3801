@@ -238,58 +238,58 @@ const LiveUsage = () => {
     }
   }, [runningRooms]);
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const savedConsumptionHistory = await AsyncStorage.getItem(
-          consumptionHistory
-        );
+  // useEffect(() => {
+  //   const loadData = async () => {
+  //     try {
+  //       const savedConsumptionHistory = await AsyncStorage.getItem(
+  //         consumptionHistory
+  //       );
 
-        const savedKitchenConsumption = await AsyncStorage.getItem(
-          CONSUMPTION_KITCHEN_KEY
-        );
-        const savedLivingConsumption = await AsyncStorage.getItem(
-          CONSUMPTION_LIVING_KEY
-        );
-        const savedLaundryConsumption = await AsyncStorage.getItem(
-          CONSUMPTION_LAUNDRY_KEY
-        );
-        const savedGarageConsumption = await AsyncStorage.getItem(
-          CONSUMPTION_GARAGE_KEY
-        );
+  //       const savedKitchenConsumption = await AsyncStorage.getItem(
+  //         CONSUMPTION_KITCHEN_KEY
+  //       );
+  //       const savedLivingConsumption = await AsyncStorage.getItem(
+  //         CONSUMPTION_LIVING_KEY
+  //       );
+  //       const savedLaundryConsumption = await AsyncStorage.getItem(
+  //         CONSUMPTION_LAUNDRY_KEY
+  //       );
+  //       const savedGarageConsumption = await AsyncStorage.getItem(
+  //         CONSUMPTION_GARAGE_KEY
+  //       );
 
-        if (savedProfileData) {
-          savedProfileData(JSON.parse(savedProfileData));
-        }
-        if (savedConsumptionHistory) {
-          setConsumptionHistory(JSON.parse(savedConsumptionHistory));
-        }
-        if (savedEnergyLimit) {
-          savedEnergyLimit(parseFloat(savedEnergyLimit));
-        }
-        if (savedBillingCycle) {
-          setBillingCycle(parseInt(savedBillingCycle, 10));
-        }
+  //       if (savedProfileData) {
+  //         savedProfileData(JSON.parse(savedProfileData));
+  //       }
+  //       if (savedConsumptionHistory) {
+  //         setConsumptionHistory(JSON.parse(savedConsumptionHistory));
+  //       }
+  //       if (savedEnergyLimit) {
+  //         savedEnergyLimit(parseFloat(savedEnergyLimit));
+  //       }
+  //       if (savedBillingCycle) {
+  //         setBillingCycle(parseInt(savedBillingCycle, 10));
+  //       }
 
-        // Load and set total consumption values
-        if (savedKitchenConsumption) {
-          totalConsumptionKitchen(parseFloat(savedKitchenConsumption));
-        }
-        if (savedLivingConsumption) {
-          totalConsumptionLiving(parseFloat(savedLivingConsumption));
-        }
-        if (savedLaundryConsumption) {
-          totalConsumptionLaundry(parseFloat(savedLaundryConsumption));
-        }
-        if (savedGarageConsumption) {
-          totalConsumptionGarage(parseFloat(savedGarageConsumption));
-        }
-      } catch (e) {
-        console.error("Failed to load data.", e);
-      }
-    };
-    loadData();
-  }, []);
+  //       // Load and set total consumption values
+  //       if (savedKitchenConsumption) {
+  //         totalConsumptionKitchen(parseFloat(savedKitchenConsumption));
+  //       }
+  //       if (savedLivingConsumption) {
+  //         totalConsumptionLiving(parseFloat(savedLivingConsumption));
+  //       }
+  //       if (savedLaundryConsumption) {
+  //         totalConsumptionLaundry(parseFloat(savedLaundryConsumption));
+  //       }
+  //       if (savedGarageConsumption) {
+  //         totalConsumptionGarage(parseFloat(savedGarageConsumption));
+  //       }
+  //     } catch (e) {
+  //       console.error("Failed to load data.", e);
+  //     }
+  //   };
+  //   loadData();
+  // }, []);
 
   // **Storing Total Consumption Every 5 Minutes**
   useEffect(() => {
@@ -314,7 +314,7 @@ const LiveUsage = () => {
     totalConsumption,
     consumptionHistory,
     setConsumptionHistory,
-    // saveConsumptionHistory,
+    saveConsumptionHistory,
   ]);
 
   // const toggleRoom = (roomName) => {

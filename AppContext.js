@@ -12,6 +12,7 @@ export const AppProvider = ({ children }) => {
   const [totalConsumptionLiving, setTotalConsumptionLiving] = useState(0);
   const [totalConsumptionLaundry, setTotalConsumptionLaundry] = useState(0);
   const [totalConsumptionGarage, setTotalConsumptionGarage] = useState(0);
+  const [kitchenRunningDevices, setKitchenRunningDevices] = useState({});
 
   // Profile Data State
   const [profileData, setProfileData] = useState({
@@ -37,6 +38,7 @@ export const AppProvider = ({ children }) => {
   const PROFILE_DATA_KEY = "@profileData";
   const CONSUMPTION_HISTORY_KEY = "@consumptionHistory";
   const CONSUMPTION_KITCHEN_KEY = "@consumptionKitchen"; // Define this key
+  const [initialDataSent, setInitialDataSent] = useState(false); // Add this flag
 
   // References to manage intervals
   const sumReadings = useRef(0); // Cumulative sum of readings
@@ -103,21 +105,10 @@ export const AppProvider = ({ children }) => {
       const averageConsumption = (
         sumReadings.current / (countReadings.current || 1)
       ).toFixed(2);
-      sendTotalConsumptionToServer(averageConsumption);
-    }, 100); // Every 10 seconds
+      const currentReading = totalConsumptionRef.current + 1.5;
 
-    return () => clearInterval(serverCommInterval); // Clear interval on unmount
-  }, []);
-
-  // Function to trigger periodic server communication
-  useEffect(() => {
-    // Set an interval to send data to the server every 10 seconds (adjust as needed)
-    const serverCommInterval = setInterval(() => {
-      const averageConsumption = (
-        sumReadings.current / (countReadings.current || 1)
-      ).toFixed(2);
-      sendTotalConsumptionToServer(averageConsumption);
-    }, 10000); // Every 10 seconds
+      sendTotalConsumptionToServer(currentReading); // Passing the average parameter
+    }, 1000); // Every 10 seconds
 
     return () => clearInterval(serverCommInterval); // Clear interval on unmount
   }, []);
@@ -162,6 +153,52 @@ export const AppProvider = ({ children }) => {
     saveConsumptionHistory(consumptionHistory);
   }, [consumptionHistory]);
 
+  useEffect(() => {
+    // Prepare the hardcoded data to send
+    const dataToSend = {
+      Oven: false,
+      Dishwasher: false,
+      Lamp: false,
+      Gaming: false,
+      Battery: false,
+      Tools: false,
+      Washing: false,
+      Dryer: false,
+    };
+
+    // Send the data to the server only once
+    const sendInitialData = async () => {
+      if (!initialDataSent) {
+        console.log("Sending initial hardcoded data:", dataToSend); // Log before sending data
+        try {
+          const response = await fetch("http://34.87.202.191:4000/multi", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(dataToSend), // Send the hardcoded data
+          });
+
+          if (!response.ok) {
+            throw new Error(`Server responded with status ${response.status}`);
+          }
+
+          const data = await response.json();
+          console.log("Initial hardcoded data sent successfully:", dataToSend); // Log success
+          console.log("Server response:", data);
+
+          setInitialDataSent(true); // Mark as sent to prevent resending
+        } catch (error) {
+          console.error("Error sending initial hardcoded data:", error);
+        }
+      } else {
+        console.log("Initial data has already been sent, skipping...");
+      }
+    };
+
+    sendInitialData(); // Send the hardcoded data on app initialization
+  }, [initialDataSent]);
+
   /**
    * Data Capturing Logic
    */
@@ -177,7 +214,8 @@ export const AppProvider = ({ children }) => {
 
       // Log the current totalConsumption every second
       console.log(`Current Total Consumption: ${currentReading} kWh/hr`);
-    }, 1000); // Every second
+      // sendTotalConsumptionToServer(average);
+    }, 1000);
   };
 
   // Start data capture when data is loaded
@@ -215,7 +253,7 @@ export const AppProvider = ({ children }) => {
     });
 
     // Optionally, send the average to the server
-    sendTotalConsumptionToServer(average);
+    // sendTotalConsumptionToServer(average);
 
     // Reset the sum and count
     sumReadings.current = 0;
@@ -238,7 +276,10 @@ export const AppProvider = ({ children }) => {
   // Function to send total consumption to the server
   const sendTotalConsumptionToServer = async (average) => {
     try {
-      console.log("Dsendingnow", dataToSend);
+      if (average === undefined || isNaN(average)) {
+        console.error("Invalid average value:", average);
+        return; // Exit the function if average is invalid
+      }
 
       // Get current time in 24-hour format: HH:mm:ss
       const currentTime = new Date().toLocaleTimeString("en-GB", {
@@ -253,6 +294,8 @@ export const AppProvider = ({ children }) => {
         current_time: currentTime, // current timestamp in 24-hour format
         Global_active_power: average, // average consumption value
       };
+
+      console.log("Dsendingnow", dataToSend);
 
       console.log("Data being sent to the server:", dataToSend);
 
@@ -320,6 +363,8 @@ export const AppProvider = ({ children }) => {
         setConsumptionHistory,
         saveConsumptionHistory,
         loadConsumptionHistory,
+        initialDataSent, // Pass it to the context
+        setInitialDataSent, // Function to update the flag
 
         // Loading State
         loading,

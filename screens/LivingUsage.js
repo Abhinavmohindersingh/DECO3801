@@ -31,7 +31,7 @@ const LivingUsage = ({ navigation }) => {
   const allDevices = [
     { name: "TV", icon: "television", consumption: 0.4 },
     { name: "Lamp", icon: "lamp", consumption: 0.1 },
-    { name: "Gaming ", icon: "gamepad-variant", consumption: 0.2 },
+    { name: "Gaming", icon: "gamepad-variant", consumption: 0.2 },
     { name: "Sound", icon: "speaker", consumption: 0.3 },
     { name: "AC", icon: "air-conditioner", consumption: 1.8 },
     { name: "Light", icon: "lightbulb-on-outline", consumption: 0.1 },
@@ -107,15 +107,37 @@ const LivingUsage = ({ navigation }) => {
     setTotalConsumptionLiving(total);
   }, [runningDevices, devices, setTotalConsumptionLiving]);
 
-  const toggleDevice = useCallback((deviceName) => {
-    setRunningDevices((prev) => {
+  const toggleDevice = useCallback(
+    async (deviceName) => {
       const updated = {
-        ...prev,
-        [deviceName]: !prev[deviceName],
+        ...runningDevices,
+        [deviceName]: !runningDevices[deviceName],
       };
-      return updated;
-    });
-  }, []);
+
+      setRunningDevices(updated);
+
+      const deviceState = !!updated[deviceName];
+      const dataToSend = { [deviceName]: deviceState };
+
+      console.log("Data sent:", dataToSend);
+
+      try {
+        const response = await fetch("http://34.87.202.191:4000/multi", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dataToSend),
+        });
+
+        if (!response.ok)
+          throw new Error(`Server responded with status ${response.status}`);
+        const data = await response.json();
+        console.log(`Device ${deviceName} set to ${deviceState}`, data);
+      } catch (error) {
+        console.error("Error sending device state:", error);
+      }
+    },
+    [runningDevices]
+  );
 
   const handleAddDevice = () => {
     setShowAddDeviceModal(true);

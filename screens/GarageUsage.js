@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useContext, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  useMemo,
+  useCallback,
+} from "react";
 import {
   View,
   Text,
@@ -25,8 +31,8 @@ const GarageUsage = ({ navigation }) => {
 
   // All possible garage devices with their properties
   const allDevices = [
-    { name: " Battery ", icon: "car-battery", consumption: 0.5 },
-    { name: "Power Tools", icon: "tools", consumption: 1.2 },
+    { name: "Battery", icon: "car-battery", consumption: 0.5 },
+    { name: "Tools", icon: "tools", consumption: 1.2 },
     { name: "EV Charger", icon: "ev-station", consumption: 2.5 },
   ];
 
@@ -106,12 +112,37 @@ const GarageUsage = ({ navigation }) => {
   }, [runningDevices, devices]);
 
   // Toggle the status of a device (ON/OFF)
-  const toggleDevice = (deviceName) => {
-    setRunningDevices((prev) => ({
-      ...prev,
-      [deviceName]: !prev[deviceName],
-    }));
-  };
+  const toggleDevice = useCallback(
+    async (deviceName) => {
+      const updated = {
+        ...runningDevices,
+        [deviceName]: !runningDevices[deviceName],
+      };
+
+      setRunningDevices(updated);
+
+      const deviceState = !!updated[deviceName];
+      const dataToSend = { [deviceName]: deviceState };
+
+      console.log("Data sent:", dataToSend);
+
+      try {
+        const response = await fetch("http://34.87.202.191:4000/multi", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dataToSend),
+        });
+
+        if (!response.ok)
+          throw new Error(`Server responded with status ${response.status}`);
+        const data = await response.json();
+        console.log(`Device ${deviceName} set to ${deviceState}`, data);
+      } catch (error) {
+        console.error("Error sending device state:", error);
+      }
+    },
+    [runningDevices]
+  );
 
   // Handle adding devices
   const handleAddDevice = () => {

@@ -28,7 +28,7 @@ const LaundryUsage = ({ navigation }) => {
   const selectedDevices = profileData.devices.laundry || [];
 
   const allDevices = [
-    { name: "Wash Machine", icon: "washing-machine", consumption: 1.0 },
+    { name: "Washing", icon: "washing-machine", consumption: 1.0 },
     { name: "Dryer", icon: "tumble-dryer", consumption: 2.0 },
     { name: "Iron", icon: "iron", consumption: 0.8 },
     { name: "Steam Press", icon: "iron-outline", consumption: 0.7 },
@@ -107,12 +107,37 @@ const LaundryUsage = ({ navigation }) => {
     setTotalConsumptionLaundry(total);
   }, [runningDevices, devices, setTotalConsumptionLaundry]);
 
-  const toggleDevice = useCallback((deviceName) => {
-    setRunningDevices((prev) => ({
-      ...prev,
-      [deviceName]: !prev[deviceName],
-    }));
-  }, []);
+  const toggleDevice = useCallback(
+    async (deviceName) => {
+      const updated = {
+        ...runningDevices,
+        [deviceName]: !runningDevices[deviceName],
+      };
+
+      setRunningDevices(updated);
+
+      const deviceState = !!updated[deviceName];
+      const dataToSend = { [deviceName]: deviceState };
+
+      console.log("Data sent:", dataToSend);
+
+      try {
+        const response = await fetch("http://34.87.202.191:4000/multi", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dataToSend),
+        });
+
+        if (!response.ok)
+          throw new Error(`Server responded with status ${response.status}`);
+        const data = await response.json();
+        console.log(`Device ${deviceName} set to ${deviceState}`, data);
+      } catch (error) {
+        console.error("Error sending device state:", error);
+      }
+    },
+    [runningDevices]
+  );
 
   const handleAddDevice = () => {
     setShowAddDeviceModal(true);

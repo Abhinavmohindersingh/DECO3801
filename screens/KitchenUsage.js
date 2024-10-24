@@ -22,6 +22,8 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { BarChart } from "react-native-chart-kit";
 import { AppContext } from "../AppContext"; // Adjust the path as needed
 
+import { Alert } from "react-native"; // Import Alert for error handling
+
 const KitchenUsage = ({ navigation }) => {
   const { profileData, setProfileData, setTotalConsumptionKitchen } =
     useContext(AppContext);
@@ -107,15 +109,37 @@ const KitchenUsage = ({ navigation }) => {
     setTotalConsumptionKitchen(total);
   }, [runningDevices, devices, setTotalConsumptionKitchen]);
 
-  const toggleDevice = useCallback((deviceName) => {
-    setRunningDevices((prev) => {
+  const toggleDevice = useCallback(
+    async (deviceName) => {
       const updated = {
-        ...prev,
-        [deviceName]: !prev[deviceName],
+        ...runningDevices,
+        [deviceName]: !runningDevices[deviceName],
       };
-      return updated;
-    });
-  }, []);
+
+      setRunningDevices(updated);
+
+      const deviceState = !!updated[deviceName];
+      const dataToSend = { [deviceName]: deviceState };
+
+      console.log("Data sent:", dataToSend);
+
+      try {
+        const response = await fetch("http://34.87.202.191:4000/multi", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dataToSend),
+        });
+
+        if (!response.ok)
+          throw new Error(`Server responded with status ${response.status}`);
+        const data = await response.json();
+        console.log(`Device ${deviceName} set to ${deviceState}`, data);
+      } catch (error) {
+        console.error("Error sending device state:", error);
+      }
+    },
+    [runningDevices]
+  );
 
   const handleAddDevice = () => {
     setShowAddDeviceModal(true);
